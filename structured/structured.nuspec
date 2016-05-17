@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package>
+  <metadata minClientVersion="2.5">
+    <title>zuki.storage.structured</title>
+    <id>zuki.storage.structured</id>
+    <version>$version$</version>
+    <authors>Michael G. Brehm</authors>
+    <owners>Michael G. Brehm</owners>
+    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
+    <projectUrl>https://github.com/djp952/tools-llvm</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <summary>todo</summary>
+    <description>todo</description>
+    <releaseNotes>todo</releaseNotes>
+    <copyright>Copyright (C)2016 Michael G. Brehm</copyright>
+    <tags>zuki</tags>
+  </metadata>
+</package>
