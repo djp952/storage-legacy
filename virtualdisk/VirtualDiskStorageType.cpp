@@ -25,7 +25,7 @@
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
-BEGIN_ROOT_NAMESPACE(zuki.storage)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //-----------------------------------------------------------------------------
 // VirtualDiskStorageType::FromVIRTUAL_STORAGE_TYPE (internal, static)
@@ -74,6 +74,6 @@ void VirtualDiskStorageType::ToVIRTUAL_STORAGE_TYPE(PVIRTUAL_STORAGE_TYPE ptype)
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki.storage)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)

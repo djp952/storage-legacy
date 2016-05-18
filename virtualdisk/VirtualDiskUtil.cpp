@@ -27,7 +27,7 @@ using namespace System;
 
 #pragma warning(push, 4)			// Enable maximum compiler warnings
 
-BEGIN_ROOT_NAMESPACE(zuki.storage)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
 // VirtualDiskUtil::FreePWSTR
@@ -96,6 +96,6 @@ Guid VirtualDiskUtil::UUIDToSysGuid(const UUID& guid)
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki.storage)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)

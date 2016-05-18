@@ -39,7 +39,7 @@ using namespace System::ComponentModel;
 using namespace System::Runtime::InteropServices;
 using namespace System::Security::AccessControl;
 
-BEGIN_ROOT_NAMESPACE(zuki.storage)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
 // Class VirtualDisk
@@ -208,7 +208,7 @@ private:
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki.storage)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 

@@ -38,7 +38,7 @@ using namespace System;
 using namespace System::IO;
 using namespace System::Runtime::Serialization::Formatters::Binary;
 
-BEGIN_ROOT_NAMESPACE(zuki.storage)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
 // Forward Class Declarations
@@ -115,7 +115,7 @@ private:
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki.storage)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 

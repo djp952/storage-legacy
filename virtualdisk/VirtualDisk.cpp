@@ -25,7 +25,7 @@
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
-BEGIN_ROOT_NAMESPACE(zuki.storage)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 // (static)
 // TODO: Description
@@ -571,6 +571,6 @@ void VirtualDisk::UniqueIdentifier::set(Guid value)
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki.storage)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)

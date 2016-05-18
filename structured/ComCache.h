@@ -35,7 +35,7 @@ using namespace System::Collections;
 using namespace System::Collections::Generic;
 using namespace	msclr;
 
-BEGIN_ROOT_NAMESPACE(zuki.storage)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
 // Class ComCache (internal)
@@ -189,7 +189,7 @@ private:
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki.storage)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 

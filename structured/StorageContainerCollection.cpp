@@ -27,7 +27,7 @@
 
 #pragma warning(push, 4)					// Enable maximum compiler warnings
 
-BEGIN_ROOT_NAMESPACE(zuki.storage)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
 // StorageContainerCollection Constructor (internal)
@@ -459,6 +459,6 @@ Dictionary<String^, Guid>^ StorageContainerCollection::ToDictionary(void)
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki.storage)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)

@@ -28,7 +28,7 @@
 
 using namespace System;
 
-BEGIN_ROOT_NAMESPACE(zuki.storage)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
 // Enum GptPartitionAttributes
@@ -50,7 +50,7 @@ public enum struct GptPartitionAttributes : unsigned __int64
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki.storage)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 

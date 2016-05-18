@@ -30,7 +30,7 @@ using namespace System;
 using namespace System::ComponentModel;
 using namespace System::Runtime::InteropServices;
 
-BEGIN_ROOT_NAMESPACE(zuki.storage)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
 // Class VirtualDiskAttachParameters
@@ -107,7 +107,7 @@ private:
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki.storage)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 

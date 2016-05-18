@@ -26,7 +26,7 @@
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 #pragma warning(disable:4100)			// "unreferenced formal parameter"
 
-BEGIN_ROOT_NAMESPACE(zuki.storage)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
 // StorageObjectStream Constructor (internal)
@@ -245,6 +245,6 @@ void StorageObjectStream::Write(array<Byte>^ buffer, int offset, int count)
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki.storage)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)

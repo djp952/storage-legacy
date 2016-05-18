@@ -30,7 +30,7 @@
 
 using namespace System;
 
-BEGIN_ROOT_NAMESPACE(zuki.storage)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
 // Interface IComPropertySetStorage (internal)
@@ -69,7 +69,7 @@ interface class IComPropertySetStorage : public IComPointer
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki.storage)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 

@@ -25,7 +25,7 @@
 
 #pragma warning(push, 4)					// Enable maximum compiler warnings
 
-BEGIN_ROOT_NAMESPACE(zuki.storage)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
 // VirtualDiskCreateParameters::Construct (private)
@@ -135,6 +135,6 @@ CREATE_VIRTUAL_DISK_VERSION VirtualDiskCreateParameters::ToCREATE_VIRTUAL_DISK_P
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki.storage)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)

@@ -28,7 +28,7 @@
 
 using namespace System::IO;
 
-BEGIN_ROOT_NAMESPACE(zuki.storage)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
 // StorageOpenMode Enumeration
@@ -47,7 +47,7 @@ STRUCTURED_STORAGE_PUBLIC enum struct StorageOpenMode
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki.storage)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 

@@ -29,7 +29,7 @@
 using namespace System;
 using namespace Microsoft::Win32::SafeHandles;
 
-BEGIN_ROOT_NAMESPACE(zuki.storage)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
 // Class VirtualDiskSafeHandle (internal)
@@ -81,7 +81,7 @@ public:
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki.storage)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 
