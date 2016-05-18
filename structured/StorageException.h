@@ -30,9 +30,7 @@ using namespace System;
 using namespace System::Runtime::InteropServices;
 using namespace System::Text;
 
-BEGIN_NAMESPACE(zuki)
-BEGIN_NAMESPACE(storage)
-BEGIN_NAMESPACE(structured)
+BEGIN_ROOT_NAMESPACE(zuki.storage)
 
 //---------------------------------------------------------------------------
 // Class StorageException
@@ -82,9 +80,7 @@ private:
 
 //---------------------------------------------------------------------------
 
-END_NAMESPACE(structured)
-END_NAMESPACE(storage)
-END_NAMESPACE(zuki)
+END_ROOT_NAMESPACE(zuki.storage)
 
 #pragma warning(pop)
 

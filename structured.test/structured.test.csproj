@@ -83,7 +83,12 @@
   <ItemGroup>
     <None Include="version.ini" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\structured\structured.vcxproj">
+      <Project>{944becb9-346f-494f-8bf3-c0df247c36b8}</Project>
+      <Name>structured</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

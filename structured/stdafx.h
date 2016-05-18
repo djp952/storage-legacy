@@ -25,13 +25,20 @@
 #pragma once
 
 //---------------------------------------------------------------------------
+// BEGIN_ROOT_NAMESPACE / END_ROOT_NAMESPACE
+//
+// Project-specific definition of the root namespace (until C++ 17)
+
+#define BEGIN_ROOT_NAMESPACE(...) namespace zuki { namespace storage {
+#define END_ROOT_NAMESPACE(...) }}
+
+//---------------------------------------------------------------------------
 // BEGIN_NAMESPACE / END_NAMESPACE
 //
-// Used to define namespaces, since C++/CLI still doesn't let you combine them
-// into one statement
+// Namespace declaration macros to avoid silly indentations (until C++ 17)
 
-#define BEGIN_NAMESPACE(__x) namespace __x {
-#define END_NAMESPACE(__x) }
+#define BEGIN_NAMESPACE(__ns) namespace __ns {
+#define END_NAMESPACE(__ns) }
 
 //---------------------------------------------------------------------------
 // CHECK_DISPOSED

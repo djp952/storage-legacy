@@ -25,9 +25,7 @@
 
 #pragma warning(push, 4)					// Enable maximum compiler warnings
 
-BEGIN_NAMESPACE(zuki)
-BEGIN_NAMESPACE(storage)
-BEGIN_NAMESPACE(structured)
+BEGIN_ROOT_NAMESPACE(zuki.storage)
 
 //---------------------------------------------------------------------------
 // StorageCache Constructor (internal)
@@ -289,8 +287,6 @@ bool ComCache<T>::TryGetValue(Guid key, T% value)
 
 //---------------------------------------------------------------------------
 
-END_NAMESPACE(structured)
-END_NAMESPACE(storage)
-END_NAMESPACE(zuki)
+END_ROOT_NAMESPACE(zuki.storage)
 
 #pragma warning(pop)

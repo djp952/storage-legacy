@@ -27,8 +27,12 @@ Targets:
   <Target Name="Clean">
     <MSBuild Projects="storage.sln" Properties="Configuration=Release;Platform=Win32" Targets="Clean" ContinueOnError="false"/>
     <MSBuild Projects="storage.sln" Properties="Configuration=Release;Platform=x64" Targets="Clean" ContinueOnError="false"/>
+    <RemoveDir Directories="$(SolutionDir)disk\tmp"/>
+    <RemoveDir Directories="$(SolutionDir)disk.test\tmp"/>
     <RemoveDir Directories="$(SolutionDir)structured\tmp"/>
     <RemoveDir Directories="$(SolutionDir)structured.test\tmp"/>
+    <RemoveDir Directories="$(SolutionDir)virtualdisk\tmp"/>
+    <RemoveDir Directories="$(SolutionDir)virtualdisk.test\tmp"/>
     <RemoveDir Directories="$(SolutionDir)out"/>
   </Target>
 
@@ -40,25 +44,58 @@ Targets:
 
   <!-- Build release targets and execute unit tests -->
   <Target Name="UnitTest" DependsOnTargets="Build">
+    <Exec Command="$(VSTestConsoleExe) /Settings:$(SolutionDir)default.runsettings /Platform:x86 /inIsolation $(SolutionDir)out\Win32\Release\zuki.storage.disk.test.dll" ContinueOnError="false"/>
+    <Exec Command="$(VSTestConsoleExe) /Settings:$(SolutionDir)default.runsettings /Platform:x64 /inIsolation $(SolutionDir)out\x64\Release\zuki.storage.disk.test.dll" ContinueOnError="false"/>
+
     <Exec Command="$(VSTestConsoleExe) /Settings:$(SolutionDir)default.runsettings /Platform:x86 /inIsolation $(SolutionDir)out\Win32\Release\zuki.storage.structured.test.dll" ContinueOnError="false"/>
     <Exec Command="$(VSTestConsoleExe) /Settings:$(SolutionDir)default.runsettings /Platform:x64 /inIsolation $(SolutionDir)out\x64\Release\zuki.storage.structured.test.dll" ContinueOnError="false"/>
+    
+    <Exec Command="$(VSTestConsoleExe) /Settings:$(SolutionDir)default.runsettings /Platform:x86 /inIsolation $(SolutionDir)out\Win32\Release\zuki.storage.virtualdisk.test.dll" ContinueOnError="false"/>
+    <Exec Command="$(VSTestConsoleExe) /Settings:$(SolutionDir)default.runsettings /Platform:x64 /inIsolation $(SolutionDir)out\x64\Release\zuki.storage.virtualdisk.test.dll" ContinueOnError="false"/>
   </Target>
 
   <!-- Generate nuget packages -->
   <Target Name="Package" DependsOnTargets="Build">
-
     <PropertyGroup>
+      
+      <PackageVersionDisk>$([System.IO.File]::ReadAllText($(SolutionDir)disk\tmp\version.txt))</PackageVersionDisk>
+      <PackageDirDisk>$(SolutionDir)out\nuget\disk\</PackageDirDisk>
+      <PackageLibDirDisk>$(PackageDirDisk)lib\net45\</PackageLibDirDisk>
+      <PackageBuildDirDisk>$(PackageDirDisk)build\net45\</PackageBuildDirDisk>
+      
       <PackageVersionStructured>$([System.IO.File]::ReadAllText($(SolutionDir)structured\tmp\version.txt))</PackageVersionStructured>
       <PackageDirStructured>$(SolutionDir)out\nuget\structured\</PackageDirStructured>
       <PackageLibDirStructured>$(PackageDirStructured)lib\net45\</PackageLibDirStructured>
       <PackageBuildDirStructured>$(PackageDirStructured)build\net45\</PackageBuildDirStructured>
+      
+      <PackageVersionVirtualDisk>$([System.IO.File]::ReadAllText($(SolutionDir)virtualdisk\tmp\version.txt))</PackageVersionVirtualDisk>
+      <PackageDirVirtualDisk>$(SolutionDir)out\nuget\virtualdisk\</PackageDirVirtualDisk>
+      <PackageLibDirVirtualDisk>$(PackageDirVirtualDisk)lib\net45\</PackageLibDirVirtualDisk>
+      <PackageBuildDirVirtualDisk>$(PackageDirVirtualDisk)build\net45\</PackageBuildDirVirtualDisk>
     </PropertyGroup>
 
+    <RemoveDir Directories="$(PackageDirDisk)" ContinueOnError="false"/>
     <RemoveDir Directories="$(PackageDirStructured)" ContinueOnError="false"/>
+    <RemoveDir Directories="$(PackageDirVirtualDisk)" ContinueOnError="false"/>
+
+    <MakeDir Directories="$(PackageDirDisk)" ContinueOnError="false"/>
+    <MakeDir Directories="$(PackageLibDirDisk)" ContinueOnError="false"/>
+    <MakeDir Directories="$(PackageBuildDirDisk)" ContinueOnError="false"/>
 
     <MakeDir Directories="$(PackageDirStructured)" ContinueOnError="false"/>
     <MakeDir Directories="$(PackageLibDirStructured)" ContinueOnError="false"/>
     <MakeDir Directories="$(PackageBuildDirStructured)" ContinueOnError="false"/>
+
+    <MakeDir Directories="$(PackageDirVirtualDisk)" ContinueOnError="false"/>
+    <MakeDir Directories="$(PackageLibDirVirtualDisk)" ContinueOnError="false"/>
+    <MakeDir Directories="$(PackageBuildDirVirtualDisk)" ContinueOnError="false"/>
+
+    <Copy SourceFiles="$(SolutionDir)disk\disk.nuspec" DestinationFiles="$(PackageDirDisk)zuki.storage.disk.nuspec" ContinueOnError="false"/>
+    <Copy SourceFiles="$(SolutionDir)out\Win32\Release\zuki.storage.disk.dll" DestinationFolder="$(PackageLibDirDisk)" ContinueOnError="false"/>
+    <Copy SourceFiles="$(SolutionDir)out\Win32\Release\zuki.storage.disk.dll" DestinationFolder="$(PackageBuildDirDisk)x86\" ContinueOnError="false"/>
+    <Copy SourceFiles="$(SolutionDir)out\x64\Release\zuki.storage.disk.dll" DestinationFolder="$(PackageBuildDirDisk)x64\" ContinueOnError="false"/>
+    <Copy SourceFiles="$(SolutionDir)disk\disk.targets" DestinationFiles="$(PackageBuildDirDisk)zuki.storage.disk.targets" ContinueOnError="false"/>
+    <Exec Command="$(NuGetExe) pack $(PackageDirDisk)zuki.storage.disk.nuspec -OutputDirectory $(PackageDirDisk) -Version $(PackageVersionDisk)" ContinueOnError="false" />
 
     <Copy SourceFiles="$(SolutionDir)structured\structured.nuspec" DestinationFiles="$(PackageDirStructured)zuki.storage.structured.nuspec" ContinueOnError="false"/>
     <Copy SourceFiles="$(SolutionDir)out\Win32\Release\zuki.storage.structured.dll" DestinationFolder="$(PackageLibDirStructured)" ContinueOnError="false"/>
@@ -67,6 +104,12 @@ Targets:
     <Copy SourceFiles="$(SolutionDir)structured\structured.targets" DestinationFiles="$(PackageBuildDirStructured)zuki.storage.structured.targets" ContinueOnError="false"/>
     <Exec Command="$(NuGetExe) pack $(PackageDirStructured)zuki.storage.structured.nuspec -OutputDirectory $(PackageDirStructured) -Version $(PackageVersionStructured)" ContinueOnError="false" />
 
+    <Copy SourceFiles="$(SolutionDir)virtualdisk\virtualdisk.nuspec" DestinationFiles="$(PackageDirVirtualDisk)zuki.storage.virtualdisk.nuspec" ContinueOnError="false"/>
+    <Copy SourceFiles="$(SolutionDir)out\Win32\Release\zuki.storage.virtualdisk.dll" DestinationFolder="$(PackageLibDirVirtualDisk)" ContinueOnError="false"/>
+    <Copy SourceFiles="$(SolutionDir)out\Win32\Release\zuki.storage.virtualdisk.dll" DestinationFolder="$(PackageBuildDirVirtualDisk)x86\" ContinueOnError="false"/>
+    <Copy SourceFiles="$(SolutionDir)out\x64\Release\zuki.storage.virtualdisk.dll" DestinationFolder="$(PackageBuildDirVirtualDisk)x64\" ContinueOnError="false"/>
+    <Copy SourceFiles="$(SolutionDir)virtualdisk\virtualdisk.targets" DestinationFiles="$(PackageBuildDirVirtualDisk)zuki.storage.virtualdisk.targets" ContinueOnError="false"/>
+    <Exec Command="$(NuGetExe) pack $(PackageDirVirtualDisk)zuki.storage.virtualdisk.nuspec -OutputDirectory $(PackageDirVirtualDisk) -Version $(PackageVersionVirtualDisk)" ContinueOnError="false" />
   </Target>
 
 </Project>

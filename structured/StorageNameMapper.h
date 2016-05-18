@@ -34,9 +34,7 @@ using namespace System;
 using namespace System::Collections::Generic;
 using namespace msclr;
 
-BEGIN_NAMESPACE(zuki)
-BEGIN_NAMESPACE(storage)
-BEGIN_NAMESPACE(structured)
+BEGIN_ROOT_NAMESPACE(zuki.storage)
 
 //---------------------------------------------------------------------------
 // Custom property set FMTID codes
@@ -185,9 +183,7 @@ private:
 
 //---------------------------------------------------------------------------
 
-END_NAMESPACE(structured)
-END_NAMESPACE(storage)
-END_NAMESPACE(zuki)
+END_ROOT_NAMESPACE(zuki.storage)
 
 #pragma warning(pop)
 

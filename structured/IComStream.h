@@ -30,9 +30,7 @@
 
 using namespace System;
 
-BEGIN_NAMESPACE(zuki)
-BEGIN_NAMESPACE(storage)
-BEGIN_NAMESPACE(structured)
+BEGIN_ROOT_NAMESPACE(zuki.storage)
 
 //---------------------------------------------------------------------------
 // Interface IComStream (internal)
@@ -105,9 +103,7 @@ interface class IComStream : public IComPointer
 
 //---------------------------------------------------------------------------
 
-END_NAMESPACE(structured)
-END_NAMESPACE(storage)
-END_NAMESPACE(zuki)
+END_ROOT_NAMESPACE(zuki.storage)
 
 #pragma warning(pop)
 

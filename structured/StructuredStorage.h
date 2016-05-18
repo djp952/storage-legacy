@@ -41,9 +41,7 @@
 using namespace System;
 using namespace System::IO;
 
-BEGIN_NAMESPACE(zuki)
-BEGIN_NAMESPACE(storage)
-BEGIN_NAMESPACE(structured)
+BEGIN_ROOT_NAMESPACE(zuki.storage)
 
 //---------------------------------------------------------------------------
 // Class StructuredStorage
@@ -137,9 +135,7 @@ private:
 
 //---------------------------------------------------------------------------
 
-END_NAMESPACE(structured)
-END_NAMESPACE(storage)
-END_NAMESPACE(zuki)
+END_ROOT_NAMESPACE(zuki.storage)
 
 #pragma warning(pop)
 

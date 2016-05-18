@@ -36,9 +36,7 @@ using namespace System::Collections;
 using namespace System::Collections::Generic;
 using namespace System::Runtime::InteropServices;
 
-BEGIN_NAMESPACE(zuki)
-BEGIN_NAMESPACE(storage)
-BEGIN_NAMESPACE(structured)
+BEGIN_ROOT_NAMESPACE(zuki.storage)
 
 //---------------------------------------------------------------------------
 // Class StoragePropertySet
@@ -162,9 +160,7 @@ private:
 
 //---------------------------------------------------------------------------
 
-END_NAMESPACE(structured)
-END_NAMESPACE(storage)
-END_NAMESPACE(zuki)
+END_ROOT_NAMESPACE(zuki.storage)
 
 #pragma warning(pop)
 
