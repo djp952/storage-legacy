@@ -519,7 +519,7 @@ VirtualDiskStorageType VirtualDisk::Type::get(void)
 	dwResult = GetVirtualDiskInformation(m_handle, &cbInfo, &info, &cbUsed);
 	if(dwResult != ERROR_SUCCESS) throw gcnew Win32Exception(dwResult);
 
-	return VirtualDiskStorageType::FromVIRTUAL_STORAGE_TYPE(&info.VirtualStorageType);
+	return VirtualDiskStorageType(info.VirtualStorageType);
 }
 
 //---------------------------------------------------------------------------

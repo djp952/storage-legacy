@@ -45,8 +45,8 @@ public ref class VirtualDiskOpenParameters sealed
 public:
 
 	// Instance Constructors
-	VirtualDiskOpenParameters() { Construct(String::Empty, VirtualDiskStorageType::Auto); }
-	VirtualDiskOpenParameters(String^ path) { Construct(path, VirtualDiskStorageType::Auto); }
+	VirtualDiskOpenParameters() { Construct(String::Empty, VirtualDiskStorageType::Unknown); }
+	VirtualDiskOpenParameters(String^ path) { Construct(path, VirtualDiskStorageType::Unknown); }
 	VirtualDiskOpenParameters(String^ path, VirtualDiskStorageType type) { Construct(path, type); }
 
 	//-----------------------------------------------------------------------

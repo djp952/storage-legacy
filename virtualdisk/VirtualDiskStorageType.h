@@ -43,37 +43,67 @@ public:
 	//-----------------------------------------------------------------------
 	// Overloaded Operators
 
-	bool operator ==(VirtualDiskStorageType rhs) { return rhs.m_deviceId == this->m_deviceId; }
-	bool operator !=(VirtualDiskStorageType rhs) { return rhs.m_deviceId != this->m_deviceId; }
+	// operator== (static)
+	//
+	static bool operator==(VirtualDiskStorageType lhs, VirtualDiskStorageType rhs);
+
+	// operator!= (static)
+	//
+	static bool operator!=(VirtualDiskStorageType lhs, VirtualDiskStorageType rhs);
+	
+	//-----------------------------------------------------------------------
+	// Member Functions
+
+	// Equals
+	//
+	// Overrides Object::Equals()
+	virtual bool Equals(Object^ rhs) override;
+
+	// Equals
+	//
+	// Compares this CompilationDatabaseLoadErrorCode to another CompilationDatabaseLoadErrorCode
+	bool Equals(VirtualDiskStorageType rhs);
+
+	// GetHashCode
+	//
+	// Overrides Object::GetHashCode()
+	virtual int GetHashCode(void) override;
+
+	// ToString
+	//
+	// Overrides Object::ToString()
+	virtual String^ ToString(void) override;
 
 	//-----------------------------------------------------------------------
 	// Fields
 
-	static initonly VirtualDiskStorageType Auto		= VirtualDiskStorageType(VIRTUAL_STORAGE_TYPE_DEVICE_UNKNOWN);
-	static initonly VirtualDiskStorageType ISO		= VirtualDiskStorageType(VIRTUAL_STORAGE_TYPE_DEVICE_ISO);
-	static initonly VirtualDiskStorageType VHD		= VirtualDiskStorageType(VIRTUAL_STORAGE_TYPE_DEVICE_VHD);
-	static initonly VirtualDiskStorageType VHDX		= VirtualDiskStorageType(VIRTUAL_STORAGE_TYPE_DEVICE_VHDX);
+	static initonly VirtualDiskStorageType Unknown	= VirtualDiskStorageType(VIRTUAL_STORAGE_TYPE_DEVICE_UNKNOWN, VIRTUAL_STORAGE_TYPE_VENDOR_UNKNOWN);
+	static initonly VirtualDiskStorageType ISO		= VirtualDiskStorageType(VIRTUAL_STORAGE_TYPE_DEVICE_ISO, VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT);
+	static initonly VirtualDiskStorageType VHD		= VirtualDiskStorageType(VIRTUAL_STORAGE_TYPE_DEVICE_VHD, VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT);
+	static initonly VirtualDiskStorageType VHDX		= VirtualDiskStorageType(VIRTUAL_STORAGE_TYPE_DEVICE_VHDX, VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT);
+	static initonly VirtualDiskStorageType VHDSet	= VirtualDiskStorageType(VIRTUAL_STORAGE_TYPE_DEVICE_VHDSET, VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT);
 
 internal:
+
+	// Instance Constructors
+	//
+	VirtualDiskStorageType(const VIRTUAL_STORAGE_TYPE& type);
+	VirtualDiskStorageType(ULONG deviceid, const GUID& vendorid);
 
 	//-----------------------------------------------------------------------
 	// Internal Member Functions
 
-	// Converts from an unmanaged VIRTUAL_STORAGE_TYPE structure
-	static VirtualDiskStorageType FromVIRTUAL_STORAGE_TYPE(PVIRTUAL_STORAGE_TYPE ptype);
-
-	// Converts into an unmanaged VIRTUAL_STORAGE_TYPE structure
-	void ToVIRTUAL_STORAGE_TYPE(PVIRTUAL_STORAGE_TYPE ptype);
+	// Converts the contained value into a VIRTUAL_STORAGE_TYPE
+	//
+	void ToVIRTUAL_STORAGE_TYPE(PVIRTUAL_STORAGE_TYPE type);
 
 private:
-
-	// PRIVATE CONSTRUCTOR
-	VirtualDiskStorageType(int deviceId) : m_deviceId(deviceId) {}
 
 	//-----------------------------------------------------------------------
 	// Member Variables
 	
-	initonly int		m_deviceId;
+	unsigned int		m_deviceid;			// Storage type device id
+	Guid				m_vendorid;			// Storage type vendor id
 };
 
 //---------------------------------------------------------------------------

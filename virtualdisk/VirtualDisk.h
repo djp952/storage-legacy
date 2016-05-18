@@ -75,9 +75,9 @@ public:
 	// BeginCreate / EndCreate
 	//
 	// Creates a new virtual disk
-	static IAsyncResult^ BeginCreate(String^ path, __int64 maximumSize) { return BeginCreate(gcnew VirtualDiskCreateParameters(path, VirtualDiskStorageType::Auto, maximumSize), nullptr); }
+	static IAsyncResult^ BeginCreate(String^ path, __int64 maximumSize) { return BeginCreate(gcnew VirtualDiskCreateParameters(path, VirtualDiskStorageType::Unknown, maximumSize), nullptr); }
 	static IAsyncResult^ BeginCreate(String^ path, VirtualDiskStorageType type, __int64 maximumSize) { return BeginCreate(gcnew VirtualDiskCreateParameters(path, type, maximumSize), nullptr); }
-	static IAsyncResult^ BeginCreate(String^ path, __int64 maximumSize, FileSecurity^ securityDescriptor) { return BeginCreate(gcnew VirtualDiskCreateParameters(path, VirtualDiskStorageType::Auto, maximumSize), securityDescriptor); }
+	static IAsyncResult^ BeginCreate(String^ path, __int64 maximumSize, FileSecurity^ securityDescriptor) { return BeginCreate(gcnew VirtualDiskCreateParameters(path, VirtualDiskStorageType::Unknown, maximumSize), securityDescriptor); }
 	static IAsyncResult^ BeginCreate(String^ path, VirtualDiskStorageType type, __int64 maximumSize, FileSecurity^ securityDescriptor) { return BeginCreate(gcnew VirtualDiskCreateParameters(path, type, maximumSize), securityDescriptor); }
 	static IAsyncResult^ BeginCreate(VirtualDiskCreateParameters^ createParams) { return BeginCreate(createParams, nullptr); }
 	static IAsyncResult^ BeginCreate(VirtualDiskCreateParameters^ createParams, FileSecurity^ securityDescriptor);
@@ -116,9 +116,9 @@ public:
 	// Create
 	//
 	// Creates a new virtual disk
-	static VirtualDisk^ Create(String^ path, __int64 maximumSize) { return Create(gcnew VirtualDiskCreateParameters(path, VirtualDiskStorageType::Auto, maximumSize), nullptr); }
+	static VirtualDisk^ Create(String^ path, __int64 maximumSize) { return Create(gcnew VirtualDiskCreateParameters(path, VirtualDiskStorageType::Unknown, maximumSize), nullptr); }
 	static VirtualDisk^ Create(String^ path, VirtualDiskStorageType type, __int64 maximumSize) { return Create(gcnew VirtualDiskCreateParameters(path, type, maximumSize), nullptr); }
-	static VirtualDisk^ Create(String^ path, __int64 maximumSize, FileSecurity^ securityDescriptor) { return Create(gcnew VirtualDiskCreateParameters(path, VirtualDiskStorageType::Auto, maximumSize), securityDescriptor); }
+	static VirtualDisk^ Create(String^ path, __int64 maximumSize, FileSecurity^ securityDescriptor) { return Create(gcnew VirtualDiskCreateParameters(path, VirtualDiskStorageType::Unknown, maximumSize), securityDescriptor); }
 	static VirtualDisk^ Create(String^ path, VirtualDiskStorageType type, __int64 maximumSize, FileSecurity^ securityDescriptor) { return Create(gcnew VirtualDiskCreateParameters(path, type, maximumSize), securityDescriptor); }
 	static VirtualDisk^ Create(VirtualDiskCreateParameters^ createParams) { return Create(createParams, nullptr); }
 	static VirtualDisk^ Create(VirtualDiskCreateParameters^ createParams, FileSecurity^ securityDescriptor);
@@ -137,7 +137,7 @@ public:
 	// Open
 	//
 	// Opens an existing virtual disk
-	static VirtualDisk^ Open(String^ path) { return Open(gcnew VirtualDiskOpenParameters(path, VirtualDiskStorageType::Auto)); }
+	static VirtualDisk^ Open(String^ path) { return Open(gcnew VirtualDiskOpenParameters(path, VirtualDiskStorageType::Unknown)); }
 	static VirtualDisk^ Open(String^ path, VirtualDiskStorageType type) { return Open(gcnew VirtualDiskOpenParameters(path, type)); }
 	static VirtualDisk^ Open(VirtualDiskOpenParameters^ openParams);
 

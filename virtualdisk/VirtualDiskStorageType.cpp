@@ -20,36 +20,124 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "stdafx.h"						// Include project pre-compiled headers
-#include "VirtualDiskStorageType.h"		// Include VirtualDiskStorageType declarations
+#include "stdafx.h"
+#include "VirtualDiskStorageType.h"
+
+#include "VirtualDiskUtil.h"
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
 
-//-----------------------------------------------------------------------------
-// VirtualDiskStorageType::FromVIRTUAL_STORAGE_TYPE (internal, static)
-//
-// Converts a VIRTUAL_STORAGE_TYPE into one of the valid VirtualStorageType(s)
+//---------------------------------------------------------------------------
+// VirtualDiskStorageType Constructor (internal)
 //
 // Arguments:
 //
-//	ptype		- Pointer to a VIRTUAL_STORAGE_TYPE structure
+//	deviceid	- Virtual disk device identifier
+//	vendorid	- Virtual disk vendor identifier
 
-VirtualDiskStorageType VirtualDiskStorageType::FromVIRTUAL_STORAGE_TYPE(PVIRTUAL_STORAGE_TYPE ptype)
+VirtualDiskStorageType::VirtualDiskStorageType(ULONG deviceid, const GUID& vendorid) : m_deviceid(deviceid), 
+	m_vendorid(VirtualDiskUtil::UUIDToSysGuid(vendorid))
 {
-	if(!ptype) return VirtualDiskStorageType::Auto;
+}
 
-	// Use the DEVICEID to determine a VirtualDiskStorageType to return
-	switch(ptype->DeviceId) {
+//---------------------------------------------------------------------------
+// VirtualDiskStorageType Constructor (internal)
+//
+// Arguments:
+//
+//	type		- VIRTUAL_STORAGE_TYPE instance reference
 
-		case VIRTUAL_STORAGE_TYPE_DEVICE_ISO: return VirtualDiskStorageType::ISO;
-		case VIRTUAL_STORAGE_TYPE_DEVICE_VHD: return VirtualDiskStorageType::VHD;
-		case VIRTUAL_STORAGE_TYPE_DEVICE_VHDX: return VirtualDiskStorageType::VHDX;
+VirtualDiskStorageType::VirtualDiskStorageType(const VIRTUAL_STORAGE_TYPE& type) : m_deviceid(type.DeviceId), 
+	m_vendorid(VirtualDiskUtil::UUIDToSysGuid(type.VendorId))
+{
+}
+
+//---------------------------------------------------------------------------
+// VirtualDiskStorageType::operator == (static)
+
+bool VirtualDiskStorageType::operator==(VirtualDiskStorageType lhs, VirtualDiskStorageType rhs)
+{
+	return ((lhs.m_deviceid == rhs.m_deviceid) && (lhs.m_vendorid == rhs.m_vendorid));
+}
+
+//---------------------------------------------------------------------------
+// VirtualDiskStorageType::operator != (static)
+
+bool VirtualDiskStorageType::operator!=(VirtualDiskStorageType lhs, VirtualDiskStorageType rhs)
+{
+	return ((lhs.m_deviceid != rhs.m_deviceid) || (lhs.m_vendorid != rhs.m_vendorid));
+}
+
+//---------------------------------------------------------------------------
+// VirtualDiskStorageType::Equals
+//
+// Compares this VirtualDiskStorageType to another VirtualDiskStorageType
+//
+// Arguments:
+//
+//	rhs		- Right-hand VirtualDiskStorageType to compare against
+
+bool VirtualDiskStorageType::Equals(VirtualDiskStorageType rhs)
+{
+	return (*this == rhs);
+}
+
+//---------------------------------------------------------------------------
+// VirtualDiskStorageType::Equals
+//
+// Overrides Object::Equals()
+//
+// Arguments:
+//
+//	rhs		- Right-hand object instance to compare against
+
+bool VirtualDiskStorageType::Equals(Object^ rhs)
+{
+	if(Object::ReferenceEquals(rhs, nullptr)) return false;
+
+	// Convert the provided object into a VirtualDiskStorageType instance
+	VirtualDiskStorageType^ rhsref = dynamic_cast<VirtualDiskStorageType^>(rhs);
+	if(rhsref == nullptr) return false;
+
+	return (*this == *rhsref);
+}
+
+//---------------------------------------------------------------------------
+// VirtualDiskStorageType::GetHashCode
+//
+// Overrides Object::GetHashCode()
+//
+// Arguments:
+//
+//	NONE
+
+int VirtualDiskStorageType::GetHashCode(void)
+{
+	return m_deviceid.GetHashCode() ^ m_vendorid.GetHashCode();
+}
+
+//---------------------------------------------------------------------------
+// VirtualDiskStorageType::ToString
+//
+// Overrides Object::ToString()
+//
+// Arguments:
+//
+//	NONE
+
+String^ VirtualDiskStorageType::ToString(void)
+{
+	switch(m_deviceid) {
+
+		case VIRTUAL_STORAGE_TYPE_DEVICE_ISO:		return gcnew String("ISO");
+		case VIRTUAL_STORAGE_TYPE_DEVICE_VHD:		return gcnew String("VHD");
+		case VIRTUAL_STORAGE_TYPE_DEVICE_VHDX:		return gcnew String("VHDX");
+		case VIRTUAL_STORAGE_TYPE_DEVICE_VHDSET:	return gcnew String("VHDSet");
+
+		default: return gcnew String("Unknown");
 	}
-	
-	// Anything unrecognized --> AUTO
-	return VirtualDiskStorageType::Auto;
 }
 
 //-----------------------------------------------------------------------------
@@ -59,17 +147,14 @@ VirtualDiskStorageType VirtualDiskStorageType::FromVIRTUAL_STORAGE_TYPE(PVIRTUAL
 //
 // Arguments:
 //
-//	ptype		- Pointer to a VIRTUAL_STORAGE_TYPE structure
+//	type		- Pointer to a VIRTUAL_STORAGE_TYPE structure
 
-void VirtualDiskStorageType::ToVIRTUAL_STORAGE_TYPE(PVIRTUAL_STORAGE_TYPE ptype)
+void VirtualDiskStorageType::ToVIRTUAL_STORAGE_TYPE(PVIRTUAL_STORAGE_TYPE type)
 {
-	if(ptype == NULL) throw gcnew ArgumentNullException("ptype");
+	if(type == __nullptr) throw gcnew ArgumentNullException("type");
 
-	ptype->DeviceId = static_cast<ULONG>(m_deviceId);
-	
-	// Use VENDOR_UNKNOWN along with DEVICE_UNKNOWN, otherwise VENDOR_MICROSOFT
-	if(m_deviceId == VIRTUAL_STORAGE_TYPE_DEVICE_UNKNOWN) ptype->VendorId = VIRTUAL_STORAGE_TYPE_VENDOR_UNKNOWN;
-	else ptype->VendorId = VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT;
+	type->DeviceId = static_cast<ULONG>(m_deviceid);
+	type->VendorId = VirtualDiskUtil::SysGuidToUUID(m_vendorid);
 }
 
 //---------------------------------------------------------------------------

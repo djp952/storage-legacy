@@ -51,10 +51,10 @@ public ref class VirtualDiskCreateParameters sealed
 public:
 
 	// Instance Constructors
-	VirtualDiskCreateParameters() { Construct(String::Empty, VirtualDiskStorageType::Auto, 0); }
-	VirtualDiskCreateParameters(String^ path) { Construct(path, VirtualDiskStorageType::Auto, 0); }
+	VirtualDiskCreateParameters() { Construct(String::Empty, VirtualDiskStorageType::Unknown, 0); }
+	VirtualDiskCreateParameters(String^ path) { Construct(path, VirtualDiskStorageType::Unknown, 0); }
 	VirtualDiskCreateParameters(String^ path, VirtualDiskStorageType type) { Construct(path, type, 0); }
-	VirtualDiskCreateParameters(String^ path, __int64 maximumSize) { Construct(path, VirtualDiskStorageType::Auto, maximumSize); }
+	VirtualDiskCreateParameters(String^ path, __int64 maximumSize) { Construct(path, VirtualDiskStorageType::Unknown, maximumSize); }
 	VirtualDiskCreateParameters(String^ path, VirtualDiskStorageType type, __int64 maximumSize) { Construct(path, type, maximumSize); }
 
 	//-----------------------------------------------------------------------

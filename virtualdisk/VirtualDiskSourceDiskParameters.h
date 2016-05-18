@@ -85,7 +85,7 @@ internal:
 	VirtualDiskSourceDiskParameters() 
 	{
 		m_path = String::Empty;
-		m_storageType = VirtualDiskStorageType::Auto;
+		m_storageType = VirtualDiskStorageType::Unknown;
 		m_preventWrites = true;
 	}
 
