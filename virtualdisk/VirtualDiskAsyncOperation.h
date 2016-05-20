@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Copyright (c) 2016 Michael G. Brehm
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,18 +18,39 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
+//-----------------------------------------------------------------------------
+
+#ifndef __VIRTUALDISKASYNCOPERATION_H_
+#define __VIRTUALDISKASYNCOPERATION_H_
+#pragma once
+
+#pragma warning(push, 4)				// Enable maximum compiler warnings
+
+using namespace System;
+
+BEGIN_ROOT_NAMESPACE(zuki::storage)
+
+//---------------------------------------------------------------------------
+// Enum VirtualDiskAsyncOperation (internal)
+//
+// Defines the type of a virtual disk asynchronous operation
 //---------------------------------------------------------------------------
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-namespace zuki.storage.virtualdisk.test
+enum class VirtualDiskAsyncOperation
 {
-	[TestClass()]
-	public class TestVirtualDisk
-	{
-		[TestMethod(), TestCategory("Placeholder")]
-		public void VirtualDisk_Placeholder()
-		{
-		}
-	}
-}
+	Create		= 0,		// CreateVirtualDisk
+	Attach,					// AttachVirtualDisk
+	Compact,				// CompactVirtualDisk
+	Merge,					// MergeVirtualDisk
+	Expand,					// ExpandVirtualDisk
+	Resize,					// ResizeVirtualDisk
+	Mirror,					// MirrorVirtualDisk
+};
+
+//---------------------------------------------------------------------------
+
+END_ROOT_NAMESPACE(zuki::storage)
+
+#pragma warning(pop)
+
+#endif	// __VIRTUALDISKASYNCOPERATION_H_

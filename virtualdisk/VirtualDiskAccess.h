@@ -20,70 +20,38 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef __VIRTUALDISKSAFEHANDLE_H_
-#define __VIRTUALDISKSAFEHANDLE_H_
+#ifndef __VIRTUALDISKACCESS_H_
+#define __VIRTUALDISKACCESS_H_
 #pragma once
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
 using namespace System;
-using namespace Microsoft::Win32::SafeHandles;
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
-// Class VirtualDiskSafeHandle (internal)
+// Enum VirtualDiskAccess
 //
-// A SafeHandle-dervied class for unmanaged virtual disk handles, use a stack
-// insatnce of VirtualDiskSafeHandle::Reference to safely access the HANDLE
-// and ensure that the safe handle is not prematurely destroyed
+// Bitmask for specifying access rights to a virtual disk
 //---------------------------------------------------------------------------
 
-ref class VirtualDiskSafeHandle : public SafeHandleZeroOrMinusOneIsInvalid
+[FlagsAttribute]
+public enum class VirtualDiskAccess
 {
-public:
+    None				= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_NONE,
+    ReadOnly			= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_ATTACH_RO,
+    ReadWrite			= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_ATTACH_RW,
+    Detach				= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_DETACH,
+    QueryInformation	= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_GET_INFO,
+    Create				= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_CREATE,
+    OfflineOperations	= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_METAOPS,
+    All					= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_ALL,
 
-	// Instance Constructor
+	// The following constants are documented as reserved
 	//
-	VirtualDiskSafeHandle(HANDLE handle);
-
-	// Class Reference
-	//
-	// Accesses the unmanaged type referred to by the safe handle
-	ref class Reference
-	{
-	public:
-
-		// Instance Constructor
-		//
-		Reference(VirtualDiskSafeHandle^ handle);
-
-		// Destructor
-		//
-		~Reference();
-
-		// HANDLE conversion operator
-		//
-		operator HANDLE();
-
-	private:
-
-		// Contained VirtualDiskSafeHandle instance
-		//
-		VirtualDiskSafeHandle^ m_handle;
-
-		// Flag indicating if the safe handle should be released during destruction
-		//
-		bool m_release = false;
-	};
-
-	//-----------------------------------------------------------------------
-	// Member Functions
-
-	// ReleaseHandle (SafeHandleZeroOrMinusOneIsInvalid)
-	//
-	// Frees the unmanaged handle object
-	virtual bool ReleaseHandle(void) override;
+	//Read				= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_READ,
+	//Writable			= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_WRITABLE,
 };
 
 //---------------------------------------------------------------------------
@@ -92,4 +60,4 @@ END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 
-#endif	// __VIRTUALDISKSAFEHANDLE_H_
+#endif	// __VIRTUALDISKACCESS_H_

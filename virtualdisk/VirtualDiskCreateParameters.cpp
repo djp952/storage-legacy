@@ -32,7 +32,7 @@ BEGIN_ROOT_NAMESPACE(zuki::storage)
 //
 // Class pseudo-constructor; initializes all member variables to default values
 
-void VirtualDiskCreateParameters::Construct(String^ path, VirtualDiskStorageType type, __int64 maximumSize)
+void VirtualDiskCreateParameters::Construct(String^ path, VirtualDiskType type, __int64 maximumSize)
 {
 	if(maximumSize < 0) throw gcnew ArgumentOutOfRangeException("maximumSize");
 	

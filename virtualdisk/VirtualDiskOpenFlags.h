@@ -20,70 +20,36 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef __VIRTUALDISKSAFEHANDLE_H_
-#define __VIRTUALDISKSAFEHANDLE_H_
+#ifndef __VIRTUALDISKOPENFLAGS_H_
+#define __VIRTUALDISKOPENFLAGS_H_
 #pragma once
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
 using namespace System;
-using namespace Microsoft::Win32::SafeHandles;
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
-// Class VirtualDiskSafeHandle (internal)
+// Enum VirtualDiskOpenFlags
 //
-// A SafeHandle-dervied class for unmanaged virtual disk handles, use a stack
-// insatnce of VirtualDiskSafeHandle::Reference to safely access the HANDLE
-// and ensure that the safe handle is not prematurely destroyed
+// Provides flag that control the behavior of an open operation
 //---------------------------------------------------------------------------
 
-ref class VirtualDiskSafeHandle : public SafeHandleZeroOrMinusOneIsInvalid
+[FlagsAttribute]
+public enum class VirtualDiskOpenFlags
 {
-public:
+    None					= OPEN_VIRTUAL_DISK_FLAG::OPEN_VIRTUAL_DISK_FLAG_NONE,
+    NoParents				= OPEN_VIRTUAL_DISK_FLAG::OPEN_VIRTUAL_DISK_FLAG_NO_PARENTS,
+    CachedIO				= OPEN_VIRTUAL_DISK_FLAG::OPEN_VIRTUAL_DISK_FLAG_CACHED_IO,
+    CustomDifferencingChain	= OPEN_VIRTUAL_DISK_FLAG::OPEN_VIRTUAL_DISK_FLAG_CUSTOM_DIFF_CHAIN,
+    ParentCachedIO			= OPEN_VIRTUAL_DISK_FLAG::OPEN_VIRTUAL_DISK_FLAG_PARENT_CACHED_IO,
+    VhdSetFileOnly			= OPEN_VIRTUAL_DISK_FLAG::OPEN_VIRTUAL_DISK_FLAG_VHDSET_FILE_ONLY,
 
-	// Instance Constructor
+	// The following constants are documented as reserved
 	//
-	VirtualDiskSafeHandle(HANDLE handle);
-
-	// Class Reference
-	//
-	// Accesses the unmanaged type referred to by the safe handle
-	ref class Reference
-	{
-	public:
-
-		// Instance Constructor
-		//
-		Reference(VirtualDiskSafeHandle^ handle);
-
-		// Destructor
-		//
-		~Reference();
-
-		// HANDLE conversion operator
-		//
-		operator HANDLE();
-
-	private:
-
-		// Contained VirtualDiskSafeHandle instance
-		//
-		VirtualDiskSafeHandle^ m_handle;
-
-		// Flag indicating if the safe handle should be released during destruction
-		//
-		bool m_release = false;
-	};
-
-	//-----------------------------------------------------------------------
-	// Member Functions
-
-	// ReleaseHandle (SafeHandleZeroOrMinusOneIsInvalid)
-	//
-	// Frees the unmanaged handle object
-	virtual bool ReleaseHandle(void) override;
+    //BlankFile				= OPEN_VIRTUAL_DISK_FLAG::OPEN_VIRTUAL_DISK_FLAG_BLANK_FILE,
+    //BootDrive				= OPEN_VIRTUAL_DISK_FLAG::OPEN_VIRTUAL_DISK_FLAG_BOOT_DRIVE,
 };
 
 //---------------------------------------------------------------------------
@@ -92,4 +58,4 @@ END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 
-#endif	// __VIRTUALDISKSAFEHANDLE_H_
+#endif	// __VIRTUALDISKOPENFLAGS_H_

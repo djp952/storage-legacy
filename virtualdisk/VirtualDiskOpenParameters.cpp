@@ -32,7 +32,7 @@ BEGIN_ROOT_NAMESPACE(zuki::storage)
 //
 // Class pseudo-constructor; initializes all member variables to default values
 
-void VirtualDiskOpenParameters::Construct(String^ path, VirtualDiskStorageType type)
+void VirtualDiskOpenParameters::Construct(String^ path, VirtualDiskType type)
 {
 	m_path = path;
 	m_storageType = type;

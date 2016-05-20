@@ -20,70 +20,28 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef __VIRTUALDISKSAFEHANDLE_H_
-#define __VIRTUALDISKSAFEHANDLE_H_
+#ifndef __VIRTUALDISKCOMPACTFLAGS_H_
+#define __VIRTUALDISKCOMPACTFLAGS_H_
 #pragma once
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
 using namespace System;
-using namespace Microsoft::Win32::SafeHandles;
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
-// Class VirtualDiskSafeHandle (internal)
+// Enum VirtualDiskCompactFlags
 //
-// A SafeHandle-dervied class for unmanaged virtual disk handles, use a stack
-// insatnce of VirtualDiskSafeHandle::Reference to safely access the HANDLE
-// and ensure that the safe handle is not prematurely destroyed
+// Provides flag that control the behavior of a compact operation
 //---------------------------------------------------------------------------
 
-ref class VirtualDiskSafeHandle : public SafeHandleZeroOrMinusOneIsInvalid
+[FlagsAttribute]
+public enum class VirtualDiskCompactFlags
 {
-public:
-
-	// Instance Constructor
-	//
-	VirtualDiskSafeHandle(HANDLE handle);
-
-	// Class Reference
-	//
-	// Accesses the unmanaged type referred to by the safe handle
-	ref class Reference
-	{
-	public:
-
-		// Instance Constructor
-		//
-		Reference(VirtualDiskSafeHandle^ handle);
-
-		// Destructor
-		//
-		~Reference();
-
-		// HANDLE conversion operator
-		//
-		operator HANDLE();
-
-	private:
-
-		// Contained VirtualDiskSafeHandle instance
-		//
-		VirtualDiskSafeHandle^ m_handle;
-
-		// Flag indicating if the safe handle should be released during destruction
-		//
-		bool m_release = false;
-	};
-
-	//-----------------------------------------------------------------------
-	// Member Functions
-
-	// ReleaseHandle (SafeHandleZeroOrMinusOneIsInvalid)
-	//
-	// Frees the unmanaged handle object
-	virtual bool ReleaseHandle(void) override;
+	None			= COMPACT_VIRTUAL_DISK_FLAG::COMPACT_VIRTUAL_DISK_FLAG_NONE,
+	NoZeroScan		= COMPACT_VIRTUAL_DISK_FLAG::COMPACT_VIRTUAL_DISK_FLAG_NO_ZERO_SCAN,
+	NoBlockMoves	= COMPACT_VIRTUAL_DISK_FLAG::COMPACT_VIRTUAL_DISK_FLAG_NO_BLOCK_MOVES,
 };
 
 //---------------------------------------------------------------------------
@@ -92,4 +50,4 @@ END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 
-#endif	// __VIRTUALDISKSAFEHANDLE_H_
+#endif	// __VIRTUALDISKCOMPACTFLAGS_H_

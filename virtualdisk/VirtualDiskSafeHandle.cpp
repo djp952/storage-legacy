@@ -20,76 +20,69 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef __VIRTUALDISKSAFEHANDLE_H_
-#define __VIRTUALDISKSAFEHANDLE_H_
-#pragma once
+#include "stdafx.h"
+#include "VirtualDiskSafeHandle.h"
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
-
-using namespace System;
-using namespace Microsoft::Win32::SafeHandles;
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
-// Class VirtualDiskSafeHandle (internal)
+// VirtualDiskSafeHandle Constructor
 //
-// A SafeHandle-dervied class for unmanaged virtual disk handles, use a stack
-// insatnce of VirtualDiskSafeHandle::Reference to safely access the HANDLE
-// and ensure that the safe handle is not prematurely destroyed
-//---------------------------------------------------------------------------
+// Arguments:
+//
+//	handle			- Virtual disk HANDLE instance
 
-ref class VirtualDiskSafeHandle : public SafeHandleZeroOrMinusOneIsInvalid
+VirtualDiskSafeHandle::VirtualDiskSafeHandle(HANDLE handle) : SafeHandleZeroOrMinusOneIsInvalid(true)
 {
-public:
+	if(handle == __nullptr) throw gcnew ArgumentNullException("handle");
+	SetHandle(IntPtr(handle));
+}
 
-	// Instance Constructor
-	//
-	VirtualDiskSafeHandle(HANDLE handle);
+//---------------------------------------------------------------------------
+// VirtualDiskSafeHandle::ReleaseHandle
+//
+// Releases the unmanaged handle instance
 
-	// Class Reference
-	//
-	// Accesses the unmanaged type referred to by the safe handle
-	ref class Reference
-	{
-	public:
+bool VirtualDiskSafeHandle::ReleaseHandle(void)
+{
+	return (CloseHandle(handle.ToPointer()) != FALSE);
+}
 
-		// Instance Constructor
-		//
-		Reference(VirtualDiskSafeHandle^ handle);
+//---------------------------------------------------------------------------
+// VirtualDiskSafeHandle::Reference Constructor
+//
+// Arguments:
+//
+//	handle		- VirtualDiskSafeHandle to reference
 
-		// Destructor
-		//
-		~Reference();
+VirtualDiskSafeHandle::Reference::Reference(VirtualDiskSafeHandle^ handle) : m_handle(handle)
+{
+	if(Object::ReferenceEquals(handle, nullptr)) throw gcnew ArgumentNullException("handle");
+			
+	m_handle->DangerousAddRef(m_release);
+	if(!m_release) throw gcnew ObjectDisposedException(VirtualDiskSafeHandle::typeid->Name);
+}
 
-		// HANDLE conversion operator
-		//
-		operator HANDLE();
+//---------------------------------------------------------------------------
+// VirtualDiskSafeHandle::Reference Destructor
 
-	private:
+VirtualDiskSafeHandle::Reference::~Reference()
+{
+	if(m_release) m_handle->DangerousRelease();
+}
 
-		// Contained VirtualDiskSafeHandle instance
-		//
-		VirtualDiskSafeHandle^ m_handle;
+//---------------------------------------------------------------------------
+// VirtualDiskSafeHandle::Reference HANDLE conversion operator
 
-		// Flag indicating if the safe handle should be released during destruction
-		//
-		bool m_release = false;
-	};
-
-	//-----------------------------------------------------------------------
-	// Member Functions
-
-	// ReleaseHandle (SafeHandleZeroOrMinusOneIsInvalid)
-	//
-	// Frees the unmanaged handle object
-	virtual bool ReleaseHandle(void) override;
-};
+VirtualDiskSafeHandle::Reference::operator HANDLE()
+{
+	return m_handle->DangerousGetHandle().ToPointer();
+}
 
 //---------------------------------------------------------------------------
 
 END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
-
-#endif	// __VIRTUALDISKSAFEHANDLE_H_

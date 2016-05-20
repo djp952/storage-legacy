@@ -25,7 +25,7 @@
 #pragma once
 
 #include "VirtualDiskParentDiskParameters.h"
-#include "VirtualDiskStorageType.h"
+#include "VirtualDiskType.h"
 #include "VirtualDiskSourceDiskParameters.h"
 #include "VirtualDiskUtil.h"
 
@@ -51,11 +51,11 @@ public ref class VirtualDiskCreateParameters sealed
 public:
 
 	// Instance Constructors
-	VirtualDiskCreateParameters() { Construct(String::Empty, VirtualDiskStorageType::Unknown, 0); }
-	VirtualDiskCreateParameters(String^ path) { Construct(path, VirtualDiskStorageType::Unknown, 0); }
-	VirtualDiskCreateParameters(String^ path, VirtualDiskStorageType type) { Construct(path, type, 0); }
-	VirtualDiskCreateParameters(String^ path, __int64 maximumSize) { Construct(path, VirtualDiskStorageType::Unknown, maximumSize); }
-	VirtualDiskCreateParameters(String^ path, VirtualDiskStorageType type, __int64 maximumSize) { Construct(path, type, maximumSize); }
+	VirtualDiskCreateParameters() { Construct(String::Empty, VirtualDiskType::Unknown, 0); }
+	VirtualDiskCreateParameters(String^ path) { Construct(path, VirtualDiskType::Unknown, 0); }
+	VirtualDiskCreateParameters(String^ path, VirtualDiskType type) { Construct(path, type, 0); }
+	VirtualDiskCreateParameters(String^ path, __int64 maximumSize) { Construct(path, VirtualDiskType::Unknown, maximumSize); }
+	VirtualDiskCreateParameters(String^ path, VirtualDiskType type, __int64 maximumSize) { Construct(path, type, maximumSize); }
 
 	//-----------------------------------------------------------------------
 	// Properties
@@ -145,10 +145,10 @@ public:
 	// Type
 	//
 	// Gets/sets the virtual disk type of the parent disk object
-	property VirtualDiskStorageType Type
+	property VirtualDiskType Type
 	{
-		VirtualDiskStorageType get(void) { return m_storageType; }
-		void set(VirtualDiskStorageType value) { m_storageType = value; }
+		VirtualDiskType get(void) { return m_storageType; }
+		void set(VirtualDiskType value) { m_storageType = value; }
 	}
 
 	// UniqueIdentifier
@@ -190,13 +190,13 @@ private:
 	// Private Member Functions
 
 	// Pseudo-constructor
-	void Construct(String^ path, VirtualDiskStorageType type, __int64 maximumSize);
+	void Construct(String^ path, VirtualDiskType type, __int64 maximumSize);
 
 	//-----------------------------------------------------------------------
 	// Member Variables
 
 	String^								m_path;
-	VirtualDiskStorageType				m_storageType;
+	VirtualDiskType				m_storageType;
 	Guid								m_uniqueIdentifier;
 	__int64								m_maximumSize;
 	int									m_blockSize;

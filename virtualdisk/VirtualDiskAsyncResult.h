@@ -24,9 +24,6 @@
 #define __VIRTUALDISKASYNCRESULT_H_
 #pragma once
 
-#include "VirtualDiskAsyncStatus.h"
-#include "VirtualDiskSafeHandle.h"
-
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
 using namespace System;
@@ -35,6 +32,11 @@ using namespace System::Threading;
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
 
+// FORWARD DECLARATIONS
+//
+enum class	VirtualDiskAsyncOperation;
+ref class	VirtualDiskSafeHandle;
+
 //---------------------------------------------------------------------------
 // Class VirtualDiskAsyncResult (internal)
 //
@@ -42,7 +44,7 @@ BEGIN_ROOT_NAMESPACE(zuki::storage)
 // to the virtual disk functions
 //---------------------------------------------------------------------------
 
-ref class VirtualDiskAsyncResult sealed : IAsyncResult
+ref class VirtualDiskAsyncResult : IAsyncResult
 {
 public:
 
@@ -55,7 +57,7 @@ public:
 	// the asynchronous operation
 	property Object^ AsyncState
 	{
-		virtual Object^ get(void) { return m_state; }
+		virtual Object^ get(void);
 	}
 
 	// AsyncWaitHandle (IAsyncResult)
@@ -63,7 +65,7 @@ public:
 	// Gets a WaitHandle that is used to wait for an asynchronous operation to complete
 	property WaitHandle^ AsyncWaitHandle
 	{
-		virtual WaitHandle^ get(void) { return m_event; }
+		virtual WaitHandle^ get(void);
 	}
 
 	// CompletedSynchronously (IAsyncResult)
@@ -72,7 +74,7 @@ public:
 	// synchronously
 	property bool CompletedSynchronously
 	{
-		virtual bool get(void) { return false; }
+		virtual bool get(void);
 	}
 
 	// IsCompleted (IAsyncResult)
@@ -80,50 +82,59 @@ public:
 	// Gets a value that indicates whether the asynchronous operation has completed
 	property bool IsCompleted
 	{
-		virtual bool get(void) { return (m_completed != 0); }
+		virtual bool get(void);
 	}
 
 internal:
 
-	// INTERNAL CONSTRUCTORS
-	VirtualDiskAsyncResult(VirtualDiskSafeHandle^ handle, Object^ state);
+	// Constructor
+	//
+	VirtualDiskAsyncResult(VirtualDiskAsyncOperation operation, WaitHandle^ waithandle, NativeOverlapped* overlapped, 
+		VirtualDiskSafeHandle^ safehandle, Object^ state);
 
 	//-----------------------------------------------------------------------
-	// Internal Overloaded Operators
+	// Internal Properties
 
-	operator LPOVERLAPPED() { return reinterpret_cast<LPOVERLAPPED>(m_pNativeOverlapped); }
+	// Operation
+	//
+	// Gets the VirtualDiskAsyncOperation value of this async result
+	property VirtualDiskAsyncOperation Operation
+	{
+		VirtualDiskAsyncOperation get(void);
+	}
+
+	// VirtualDiskHandle
+	//
+	// Gets the VirtualDiskSafeHandle associated with this operation
+	property VirtualDiskSafeHandle^ VirtualDiskHandle
+	{
+		VirtualDiskSafeHandle^ get(void);
+	}
 
 	//-----------------------------------------------------------------------
 	// Internal Member Functions
 
-	// EndOperation
+	// Complete (static)
 	//
-	// Completes the asynchronous I/O operation
-	static VirtualDiskAsyncStatus EndOperation(IAsyncResult^ asyncResult);
+	// Completes the asynchronous operation
+	static VIRTUAL_DISK_PROGRESS Complete(VirtualDiskAsyncResult^ asyncresult);
 
 private:
 
-	// DESTRUCTOR / FINALIZER
-	~VirtualDiskAsyncResult() { this->!VirtualDiskAsyncResult(); GC::SuppressFinalize(this); }
-	!VirtualDiskAsyncResult();
-
-	//-----------------------------------------------------------------------
-	// Private Member Functions
-
-	// EndOperation
+	// Destructor / Finalizer
 	//
-	// Completes the asynchronous I/O operation
-	VirtualDiskAsyncStatus EndOperation(void);
+	~VirtualDiskAsyncResult();
+	!VirtualDiskAsyncResult();
 
 	//-----------------------------------------------------------------------
 	// Member Variables
 
-	initonly VirtualDiskSafeHandle^		m_handle;
-	initonly Object^					m_state;
-	int									m_completed;
-	ManualResetEvent^					m_event;
-	Overlapped^							m_overlapped;
-	NativeOverlapped*					m_pNativeOverlapped;
+	bool						m_disposed;			// Object disposal flag
+	VirtualDiskAsyncOperation	m_operation;		// Operation type
+	WaitHandle^					m_waithandle;		// Operation wait handle
+	NativeOverlapped*			m_overlapped;		// Native OVERLAPPED data
+	VirtualDiskSafeHandle^		m_safehandle;		// Virtual disk safe handle
+	Object^						m_state;			// User-defined state object
 };
 
 //---------------------------------------------------------------------------

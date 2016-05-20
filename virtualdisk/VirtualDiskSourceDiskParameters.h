@@ -24,7 +24,7 @@
 #define __VIRTUALDISKSOURCEDISKPARAMETERS_H_
 #pragma once
 
-#include "VirtualDiskStorageType.h"
+#include "VirtualDiskType.h"
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
@@ -73,10 +73,10 @@ public:
 	// Type
 	//
 	// Gets/sets the virtual disk type of the source disk object
-	property VirtualDiskStorageType Type
+	property VirtualDiskType Type
 	{
-		VirtualDiskStorageType get(void) { return m_storageType; }
-		void set(VirtualDiskStorageType value) { m_storageType = value; }
+		VirtualDiskType get(void) { return m_storageType; }
+		void set(VirtualDiskType value) { m_storageType = value; }
 	}
 
 internal:
@@ -85,7 +85,7 @@ internal:
 	VirtualDiskSourceDiskParameters() 
 	{
 		m_path = String::Empty;
-		m_storageType = VirtualDiskStorageType::Unknown;
+		m_storageType = VirtualDiskType::Unknown;
 		m_preventWrites = true;
 	}
 
@@ -95,7 +95,7 @@ private:
 	// Member Variables
 
 	String^						m_path;
-	VirtualDiskStorageType		m_storageType;
+	VirtualDiskType		m_storageType;
 	bool						m_preventWrites;
 };
 

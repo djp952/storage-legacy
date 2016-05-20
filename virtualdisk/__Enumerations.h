@@ -37,6 +37,7 @@ BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 public enum struct AttachFlags
 {
+	// todo: fully qualify
 	None						= ATTACH_VIRTUAL_DISK_FLAG_NONE,
 	ReadOnly					= ATTACH_VIRTUAL_DISK_FLAG_READ_ONLY,
 	NoDriveLetter				= ATTACH_VIRTUAL_DISK_FLAG_NO_DRIVE_LETTER,
@@ -51,6 +52,7 @@ public enum struct AttachFlags
 
 public enum struct DependentDiskFlags
 {
+	// todo: fully qualify
 	None						= DEPENDENT_DISK_FLAG_NONE,
 	MultipleBackingFiles		= DEPENDENT_DISK_FLAG_MULT_BACKING_FILES,
 	FullyAllocated				= DEPENDENT_DISK_FLAG_FULLY_ALLOCATED,

@@ -27,9 +27,6 @@
     <ClCompile Include="guids.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VirtualDiskAsyncResult.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="VirtualDiskUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -39,13 +36,19 @@
     <ClCompile Include="VirtualDiskCreateParameters.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VirtualDiskStorageType.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="VirtualDiskAttachParameters.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="tmp\version.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VirtualDiskSafeHandle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VirtualDiskAsyncResult.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VirtualDiskType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -54,12 +57,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VirtualDisk.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VirtualDiskAsyncResult.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VirtualDiskSafeHandle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VirtualDiskAsyncStatus.h">
@@ -74,9 +71,6 @@
     <ClInclude Include="VirtualDiskCreateParameters.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VirtualDiskStorageType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="__Enumerations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -87,6 +81,30 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VirtualDiskAttachParameters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VirtualDiskCreateParameters2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VirtualDiskAsyncOperation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VirtualDiskSafeHandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VirtualDiskCompactFlags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VirtualDiskAsyncResult.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VirtualDiskType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VirtualDiskAccess.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VirtualDiskOpenFlags.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

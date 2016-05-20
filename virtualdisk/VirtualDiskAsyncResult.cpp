@@ -20,8 +20,11 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "stdafx.h"						// Include project pre-compiled headers
-#include "VirtualDiskAsyncResult.h"		// Include VirtualDiskAsyncResult decls
+#include "stdafx.h"
+#include "VirtualDiskAsyncResult.h"
+
+#include "VirtualDiskAsyncOperation.h"
+#include "VirtualDiskSafeHandle.h"
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
@@ -32,18 +35,30 @@ BEGIN_ROOT_NAMESPACE(zuki::storage)
 //
 // Arguments:
 //
-//	handle		- Open VirtualDiskSafeHandle instance
-//	state		- IAsyncResult state object
+//	operation		- Asynchronous operation being performed
+//	waithandle		- WaitHandle instance for the async operation
+//	overlapped		- Packed NativeOverlapped pointer
+//	safehandle		- VirtualDiskSafeHandle instance
+//	state			- Caller-provided state object for the operation
 
-VirtualDiskAsyncResult::VirtualDiskAsyncResult(VirtualDiskSafeHandle^ handle, Object^ state) : 
-	m_handle(handle), m_state(state), m_completed(false)
+VirtualDiskAsyncResult::VirtualDiskAsyncResult(VirtualDiskAsyncOperation operation, WaitHandle^ waithandle, NativeOverlapped* overlapped, 
+	VirtualDiskSafeHandle^ safehandle, Object^ state) : m_operation(operation), m_waithandle(waithandle), m_overlapped(overlapped), m_safehandle(safehandle),
+	m_state(state)
 {
-	// Can't check this
-	// if(handle == nullptr) throw gcnew ArgumentNullException("handle");
+	if(Object::ReferenceEquals(waithandle, nullptr)) throw gcnew ArgumentNullException("waithandle");
+	if(overlapped == __nullptr) throw gcnew ArgumentNullException("overlapped");
+	if(Object::ReferenceEquals(safehandle, nullptr)) throw gcnew ArgumentNullException("safehandle");
+}
 
-	m_event = gcnew ManualResetEvent(false);
-	m_overlapped = gcnew Overlapped(0, 0, m_event->SafeWaitHandle->DangerousGetHandle(), this);
-	m_pNativeOverlapped = m_overlapped->Pack(nullptr, nullptr);
+//---------------------------------------------------------------------------
+// VirtualDiskAsyncResult Destructor
+
+VirtualDiskAsyncResult::~VirtualDiskAsyncResult()
+{
+	if(m_disposed) return;
+
+	delete m_waithandle;
+	this->!VirtualDiskAsyncResult();
 }
 
 //---------------------------------------------------------------------------
@@ -51,50 +66,103 @@ VirtualDiskAsyncResult::VirtualDiskAsyncResult(VirtualDiskSafeHandle^ handle, Ob
 
 VirtualDiskAsyncResult::!VirtualDiskAsyncResult()
 {
-	if(m_pNativeOverlapped) Overlapped::Free(m_pNativeOverlapped);
-	m_pNativeOverlapped = NULL;
+	if(m_overlapped) Overlapped::Free(m_overlapped);
+	m_overlapped = __nullptr;
 }
 
 //---------------------------------------------------------------------------
-// VirtualDiskAsyncResult::EndOperation (internal, static)
+// VirtualDiskAsyncResult::AsyncState::get
 //
-// Completes the asynchronous I/O operation
-//
-// Arguments:
-//
-//	asyncResult		- IAsyncResult object instance
+// Gets a user-defined object that qualifies or contains information about 
+// the asynchronous operation
 
-VirtualDiskAsyncStatus VirtualDiskAsyncResult::EndOperation(IAsyncResult^ asyncResult)
+Object^ VirtualDiskAsyncResult::AsyncState::get(void)
 {
-	VirtualDiskAsyncResult^ instance = safe_cast<VirtualDiskAsyncResult^>(asyncResult);
-	return instance->EndOperation();
+	CHECK_DISPOSED(m_disposed);
+	return m_state;
 }
 
 //---------------------------------------------------------------------------
-// VirtualDiskAsyncResult::EndOperation (private)
+// VirtualDiskAsyncResult::AsyncWaitHandle::get
 //
-// Completes the asynchronous I/O operation
+// Gets a WaitHandle that is used to wait for an asynchronous operation to complete
+
+WaitHandle^ VirtualDiskAsyncResult::AsyncWaitHandle::get(void)
+{
+	CHECK_DISPOSED(m_disposed);
+	return m_waithandle;
+}
+
+//---------------------------------------------------------------------------
+// VirtualDiskAsyncResult::Complete (static, internal)
+//
+// Completes the asynchronous operation
 //
 // Arguments:
 //
-//	NONE
+//	asyncresult		- VirtualDiskAsyncResult instance to complete
 
-VirtualDiskAsyncStatus VirtualDiskAsyncResult::EndOperation(void)
+VIRTUAL_DISK_PROGRESS VirtualDiskAsyncResult::Complete(VirtualDiskAsyncResult^ asyncresult)
 {
 	VIRTUAL_DISK_PROGRESS			progress;			// Operation progress information
-	DWORD							dwResult;			// Result from function call
+	DWORD							result;				// Result from function call
 
-	m_event->WaitOne();									// Wait for the I/O operation to complete
+	if(Object::ReferenceEquals(asyncresult, nullptr)) throw gcnew ArgumentNullException("asyncresult");
 
-	// Get the final operation progress so that it can be returned by this function
-	dwResult = GetVirtualDiskOperationProgress(m_handle, reinterpret_cast<LPOVERLAPPED>(m_pNativeOverlapped), &progress);
-	if(dwResult != ERROR_SUCCESS) throw gcnew Win32Exception(dwResult);
+	asyncresult->m_waithandle->WaitOne();				// Wait for the async operation to complete
 
-	Interlocked::Exchange(m_completed, 1);				// Set the completion flag
-	Overlapped::Free(m_pNativeOverlapped);				// Release native OVERLAPPED structure
-	m_pNativeOverlapped = NULL;							// Reset pointer to NULL
+	// Get the final operation progress to return to the caller
+	result = GetVirtualDiskOperationProgress(VirtualDiskSafeHandle::Reference(asyncresult->m_safehandle), 
+		reinterpret_cast<LPOVERLAPPED>(asyncresult->m_overlapped), &progress);
+	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
 
-	return VirtualDiskAsyncStatus(&progress);
+	// Return the final progress as an unmanaged VIRTUAL_DISK_PROGRESS
+	return progress;
+}
+	
+//---------------------------------------------------------------------------
+// VirtualDiskAsyncResult::CompletedSynchronously::get
+//
+// Gets a value that indicates whether the asynchronous operation completed 
+// synchronously
+
+bool VirtualDiskAsyncResult::CompletedSynchronously::get(void)
+{
+	CHECK_DISPOSED(m_disposed);
+	return false;
+}
+
+//---------------------------------------------------------------------------
+// VirtualDiskAsyncResult::IsCompleted::get
+//
+// Gets a value that indicates whether the asynchronous operation has completed
+
+bool VirtualDiskAsyncResult::IsCompleted::get(void)
+{
+	CHECK_DISPOSED(m_disposed);
+	return m_waithandle->WaitOne(0);
+}
+
+//---------------------------------------------------------------------------
+// VirtualDiskAsyncResult::Operation::get
+//
+// Gets the VirtualDiskAsyncOperation value for this async result
+
+VirtualDiskAsyncOperation VirtualDiskAsyncResult::Operation::get(void)
+{
+	CHECK_DISPOSED(m_disposed);
+	return m_operation;
+}
+
+//---------------------------------------------------------------------------
+// VirtualDiskAsyncResult::VirtualDiskHandle::get (internal)
+//
+// Gets the virtual disk safe handle associated with this operation
+
+VirtualDiskSafeHandle^ VirtualDiskAsyncResult::VirtualDiskHandle::get(void)
+{
+	CHECK_DISPOSED(m_disposed);
+	return m_safehandle;
 }
 
 //---------------------------------------------------------------------------

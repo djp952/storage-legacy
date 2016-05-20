@@ -20,8 +20,8 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef __VIRTUALDISKSTORAGETYPE_H_
-#define __VIRTUALDISKSTORAGETYPE_H_
+#ifndef __VIRTUALDISKTYPE_H_
+#define __VIRTUALDISKTYPE_H_
 #pragma once
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
@@ -31,12 +31,12 @@ using namespace System;
 BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
-// Class VirtualDiskStorageType
+// Class VirtualDiskType
 //
 // Defines the type of a virtual storage device
 //---------------------------------------------------------------------------
 
-public value class VirtualDiskStorageType sealed
+public value class VirtualDiskType sealed
 {
 public:
 
@@ -45,11 +45,11 @@ public:
 
 	// operator== (static)
 	//
-	static bool operator==(VirtualDiskStorageType lhs, VirtualDiskStorageType rhs);
+	static bool operator==(VirtualDiskType lhs, VirtualDiskType rhs);
 
 	// operator!= (static)
 	//
-	static bool operator!=(VirtualDiskStorageType lhs, VirtualDiskStorageType rhs);
+	static bool operator!=(VirtualDiskType lhs, VirtualDiskType rhs);
 	
 	//-----------------------------------------------------------------------
 	// Member Functions
@@ -61,8 +61,8 @@ public:
 
 	// Equals
 	//
-	// Compares this CompilationDatabaseLoadErrorCode to another CompilationDatabaseLoadErrorCode
-	bool Equals(VirtualDiskStorageType rhs);
+	// Compares this VirtualDiskType to another VirtualDiskType
+	bool Equals(VirtualDiskType rhs);
 
 	// GetHashCode
 	//
@@ -77,18 +77,17 @@ public:
 	//-----------------------------------------------------------------------
 	// Fields
 
-	static initonly VirtualDiskStorageType Unknown	= VirtualDiskStorageType(VIRTUAL_STORAGE_TYPE_DEVICE_UNKNOWN, VIRTUAL_STORAGE_TYPE_VENDOR_UNKNOWN);
-	static initonly VirtualDiskStorageType ISO		= VirtualDiskStorageType(VIRTUAL_STORAGE_TYPE_DEVICE_ISO, VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT);
-	static initonly VirtualDiskStorageType VHD		= VirtualDiskStorageType(VIRTUAL_STORAGE_TYPE_DEVICE_VHD, VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT);
-	static initonly VirtualDiskStorageType VHDX		= VirtualDiskStorageType(VIRTUAL_STORAGE_TYPE_DEVICE_VHDX, VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT);
-	static initonly VirtualDiskStorageType VHDSet	= VirtualDiskStorageType(VIRTUAL_STORAGE_TYPE_DEVICE_VHDSET, VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT);
+	static initonly VirtualDiskType Unknown	= VirtualDiskType(VIRTUAL_STORAGE_TYPE_DEVICE_UNKNOWN, VIRTUAL_STORAGE_TYPE_VENDOR_UNKNOWN);
+	static initonly VirtualDiskType ISO		= VirtualDiskType(VIRTUAL_STORAGE_TYPE_DEVICE_ISO, VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT);
+	static initonly VirtualDiskType VHD		= VirtualDiskType(VIRTUAL_STORAGE_TYPE_DEVICE_VHD, VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT);
+	static initonly VirtualDiskType VHDX	= VirtualDiskType(VIRTUAL_STORAGE_TYPE_DEVICE_VHDX, VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT);
 
 internal:
 
 	// Instance Constructors
 	//
-	VirtualDiskStorageType(const VIRTUAL_STORAGE_TYPE& type);
-	VirtualDiskStorageType(ULONG deviceid, const GUID& vendorid);
+	VirtualDiskType(const VIRTUAL_STORAGE_TYPE& type);
+	VirtualDiskType(ULONG deviceid, const GUID& vendorid);
 
 	//-----------------------------------------------------------------------
 	// Internal Member Functions
@@ -112,4 +111,4 @@ END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 
-#endif	// __VIRTUALDISKSTORAGETYPE_H_
+#endif	// __VIRTUALDISKTYPE_H_

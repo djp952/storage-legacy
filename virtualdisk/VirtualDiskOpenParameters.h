@@ -24,7 +24,7 @@
 #define __VIRTUALDISKOPENPARAMETERS_H_
 #pragma once
 
-#include "VirtualDiskStorageType.h"
+#include "VirtualDiskType.h"
 #include "VirtualDiskUtil.h"
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
@@ -45,9 +45,9 @@ public ref class VirtualDiskOpenParameters sealed
 public:
 
 	// Instance Constructors
-	VirtualDiskOpenParameters() { Construct(String::Empty, VirtualDiskStorageType::Unknown); }
-	VirtualDiskOpenParameters(String^ path) { Construct(path, VirtualDiskStorageType::Unknown); }
-	VirtualDiskOpenParameters(String^ path, VirtualDiskStorageType type) { Construct(path, type); }
+	VirtualDiskOpenParameters() { Construct(String::Empty, VirtualDiskType::Unknown); }
+	VirtualDiskOpenParameters(String^ path) { Construct(path, VirtualDiskType::Unknown); }
+	VirtualDiskOpenParameters(String^ path, VirtualDiskType type) { Construct(path, type); }
 
 	//-----------------------------------------------------------------------
 	// Properties
@@ -100,10 +100,10 @@ public:
 	// Type
 	//
 	// Gets/sets the virtual disk type of the parent disk object
-	property VirtualDiskStorageType Type
+	property VirtualDiskType Type
 	{
-		VirtualDiskStorageType get(void) { return m_storageType; }
-		void set(VirtualDiskStorageType value) { m_storageType = value; }
+		VirtualDiskType get(void) { return m_storageType; }
+		void set(VirtualDiskType value) { m_storageType = value; }
 	}
 
 	// UseCachedIO
@@ -136,13 +136,13 @@ private:
 	// Private Member Functions
 
 	// Pseudo-constructor
-	void Construct(String^ path, VirtualDiskStorageType type);
+	void Construct(String^ path, VirtualDiskType type);
 
 	//-----------------------------------------------------------------------
 	// Member Variables
 
 	String^						m_path;
-	VirtualDiskStorageType		m_storageType;
+	VirtualDiskType		m_storageType;
 	bool						m_getInfoOnly;
 	bool						m_readOnly;
 	bool						m_noParents;
