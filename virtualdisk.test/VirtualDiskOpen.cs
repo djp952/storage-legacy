@@ -32,19 +32,21 @@ namespace zuki.storage.virtualdisk.test
 		void OnCompacted(IAsyncResult result)
 		{
 			int x = 123;
+
+			// this throws if the operation was cancelled - how do I feel about that
 			VirtualDisk.EndCompact(result);
 		}
 
 		[TestMethod(), TestCategory("Open Virtual Disk")]
 		public void VirtualDisk_OpenPath()
 		{
-			VirtualDisk vdisk = VirtualDisk.Open(@"D:\Virtual Machines\Virtual Hard Disks\LINUX-BUILD.vhdx");
+			VirtualDisk vdisk = VirtualDisk.Open(@"D:\Virtual Machines\Virtual Hard Disks\BREHMM-LINUX-MV.vhdx");
 			//{
 				IAsyncResult async = vdisk.BeginCompact(OnCompacted, null);
-			VirtualDisk.EndCompact(async);
+			VirtualDisk.CancelCompact(async);
 			//}
 
-			//System.Threading.Thread.Sleep(45000);
+			System.Threading.Thread.Sleep(5000);
 		}
 	}
 }

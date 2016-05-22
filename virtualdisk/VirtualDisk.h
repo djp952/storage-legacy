@@ -64,6 +64,11 @@ public:
 	IAsyncResult^ BeginCompact(AsyncCallback^ callback, Object^ state);
 	IAsyncResult^ BeginCompact(VirtualDiskCompactFlags flags, AsyncCallback^ callback, Object^ state);
 
+	// CancelCompact (APM)
+	//
+	// Cancels an asynchronous compact operation
+	static void CancelCompact(IAsyncResult^ asyncresult);
+
 	// Compact
 	//
 	// Synchronously compacts the virtual disk

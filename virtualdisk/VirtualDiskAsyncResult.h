@@ -34,7 +34,8 @@ BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 // FORWARD DECLARATIONS
 //
-enum class VirtualDiskAsyncOperation;
+enum class	VirtualDiskAsyncOperation;
+ref class	VirtualDiskSafeHandle;
 
 //---------------------------------------------------------------------------
 // Class VirtualDiskAsyncResult (internal)
@@ -86,7 +87,7 @@ internal:
 
 	// Instance Constructor
 	//
-	VirtualDiskAsyncResult(VirtualDiskAsyncOperation operation, AsyncCallback^ callback, Object^ state);
+	VirtualDiskAsyncResult(VirtualDiskAsyncOperation operation, VirtualDiskSafeHandle^ handle, AsyncCallback^ callback, Object^ state);
 
 	// LPOVERLAPPED conversion operator
 	//
@@ -103,8 +104,21 @@ internal:
 		VirtualDiskAsyncOperation get(void);
 	}
 
+	// Handle
+	//
+	// Gets the VirtualDiskSafeHandle instance for this operation
+	property VirtualDiskSafeHandle^ Handle
+	{
+		VirtualDiskSafeHandle^ get(void);
+	}
+
 	//-----------------------------------------------------------------------
 	// Internal Member Functions
+
+	// Cancel
+	//
+	// Attempts to cancel the operation
+	void Cancel(void);
 
 	// Complete
 	//
@@ -130,6 +144,7 @@ private:
 	// Member Variables
 
 	VirtualDiskAsyncOperation	m_operation;		// Operation type
+	VirtualDiskSafeHandle^		m_handle;			// Virtual disk safe handle
 	ManualResetEvent^			m_event;			// Operation wait handle
 	NativeOverlapped*			m_overlapped;		// Native OVERLAPPED data
 	AsyncCallback^				m_callback;			// User-defined callback 

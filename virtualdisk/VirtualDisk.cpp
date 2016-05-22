@@ -130,7 +130,7 @@ IAsyncResult^ VirtualDisk::BeginCompact(VirtualDiskCompactFlags flags, AsyncCall
 	params.Version = COMPACT_VIRTUAL_DISK_VERSION_1;
 
 	// Construct the VirtualDiskAsyncResult instance for this operation
-	VirtualDiskAsyncResult^ asyncresult = gcnew VirtualDiskAsyncResult(VirtualDiskAsyncOperation::Compact, callback, state);
+	VirtualDiskAsyncResult^ asyncresult = gcnew VirtualDiskAsyncResult(VirtualDiskAsyncOperation::Compact, m_handle, callback, state);
 
 	// Attempt to compact the virtual disk asynchronously, complete the operation if it ran synchronously
 	DWORD result = CompactVirtualDisk(VirtualDiskSafeHandle::Reference(m_handle), static_cast<COMPACT_VIRTUAL_DISK_FLAG>(flags), &params, asyncresult);
@@ -160,6 +160,24 @@ unsigned int VirtualDisk::BlockSize::get(void)
 	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
 
 	return info.Size.BlockSize;
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::CancelCompact (static)
+//
+// Cancels an asynchronous virtual disk compact operation
+//
+// Arguments:
+//
+//	asyncresult		- IAsyncResult instance returned by BeginCompact()
+
+void VirtualDisk::CancelCompact(IAsyncResult^ asyncresult)
+{
+	// The IAsyncResult reference must be a VirtualDiskAsyncResult from BeginCompact()
+	VirtualDiskAsyncResult^ result = safe_cast<VirtualDiskAsyncResult^>(asyncresult);
+	if(result->Operation != VirtualDiskAsyncOperation::Compact) throw gcnew InvalidOperationException();
+
+	result->Cancel();					// Attempt to cancel the operation
 }
 
 //---------------------------------------------------------------------------
