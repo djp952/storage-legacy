@@ -46,6 +46,9 @@ value class	VirtualDiskType;
 // Class VirtualDisk
 //
 // TODO
+//
+// (APM) - Asynchronous Programming Model
+// (TAP) - Task-based Asynchronous Pattern
 //---------------------------------------------------------------------------
 
 public ref class VirtualDisk sealed
@@ -55,7 +58,7 @@ public:
 	//-----------------------------------------------------------------------
 	// Member Functions
 
-	// BeginCompact
+	// BeginCompact (APM)
 	//
 	// Begins an asynchronous compact operation
 	IAsyncResult^ BeginCompact(AsyncCallback^ callback, Object^ state);
@@ -67,15 +70,20 @@ public:
 	void Compact(void);
 	void Compact(VirtualDiskCompactFlags flags);
 
-	// CompactAsync
+	// CompactAsync (TAP)
 	//
 	// Asynchronously compacts the virtual disk
 	Task^ CompactAsync(void);
 	Task^ CompactAsync(VirtualDiskCompactFlags flags);
 	Task^ CompactAsync(CancellationToken cancellation);
 	Task^ CompactAsync(VirtualDiskCompactFlags flags, CancellationToken cancellation);
+	// todo: progress via IProgress
+	//Task^ CompactAsync(IProgress<int>^ progress);
+	//Task^ CompactAsync(VirtualDiskCompactFlags flags, IProgress<int>^ progress);
+	//Task^ CompactAsync(CancellationToken cancellation, IProgress<int>^ progress);
+	//Task^ CompactAsync(VirtualDiskCompactFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
 	
-	// EndCompact
+	// EndCompact (APM)
 	//
 	// Completes an asynchronous compact operation
 	static void EndCompact(IAsyncResult^ asyncresult);
@@ -175,12 +183,6 @@ public:
 	//IAsyncResult^ BeginAttach(VirtualDiskAttachParameters^ attachParams, FileSecurity^ securityDescriptor);
 	//VirtualDiskAsyncStatus EndAttach(IAsyncResult^ asyncResult) { return CompleteAsyncOperation(asyncResult); }
 
-	//// BeginCompact / EndCompact
-	////
-	//// Compacts the virtual disk
-	////IAsyncResult^ BeginCompact(void);
-	////VirtualDiskAsyncStatus EndCompact(IAsyncResult^ asyncResult) { return CompleteAsyncOperation(asyncResult); }
-
 	//// BeginCreate / EndCreate
 	////
 	//// Creates a new virtual disk
@@ -225,11 +227,6 @@ public:
 	//void Attach(void) { Attach(gcnew VirtualDiskAttachParameters(), nullptr); }
 	//void Attach(VirtualDiskAttachParameters^ attachParams) { Attach(attachParams, nullptr); }
 	//void Attach(VirtualDiskAttachParameters^ attachParams, FileSecurity^ securityDescriptor);
-
-	//// Compact
-	////
-	//// Compacts the virtual disk
-	////void Compact(void);
 
 	//// Create
 	////

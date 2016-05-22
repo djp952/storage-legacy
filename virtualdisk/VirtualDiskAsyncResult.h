@@ -34,8 +34,7 @@ BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 // FORWARD DECLARATIONS
 //
-enum class	VirtualDiskAsyncOperation;
-ref class	VirtualDiskSafeHandle;
+enum class VirtualDiskAsyncOperation;
 
 //---------------------------------------------------------------------------
 // Class VirtualDiskAsyncResult (internal)
@@ -53,8 +52,7 @@ public:
 
 	// AsyncState (IAsyncResult)
 	//
-	// Gets a user-defined object that qualifies or contains information about 
-	// the asynchronous operation
+	// Gets a user-defined object that qualifies the asynchronous operation
 	property Object^ AsyncState
 	{
 		virtual Object^ get(void);
@@ -70,8 +68,7 @@ public:
 
 	// CompletedSynchronously (IAsyncResult)
 	//
-	// Gets a value that indicates whether the asynchronous operation completed 
-	// synchronously
+	// Gets a value that indicates whether the asynchronous operation completed synchronously
 	property bool CompletedSynchronously
 	{
 		virtual bool get(void);
@@ -87,10 +84,13 @@ public:
 
 internal:
 
-	// Constructor
+	// Instance Constructor
 	//
-	VirtualDiskAsyncResult(VirtualDiskAsyncOperation operation, WaitHandle^ waithandle, NativeOverlapped* overlapped, 
-		VirtualDiskSafeHandle^ safehandle, Object^ state);
+	VirtualDiskAsyncResult(VirtualDiskAsyncOperation operation, AsyncCallback^ callback, Object^ state);
+
+	// LPOVERLAPPED conversion operator
+	//
+	operator LPOVERLAPPED();
 
 	//-----------------------------------------------------------------------
 	// Internal Properties
@@ -103,38 +103,39 @@ internal:
 		VirtualDiskAsyncOperation get(void);
 	}
 
-	// VirtualDiskHandle
-	//
-	// Gets the VirtualDiskSafeHandle associated with this operation
-	property VirtualDiskSafeHandle^ VirtualDiskHandle
-	{
-		VirtualDiskSafeHandle^ get(void);
-	}
-
 	//-----------------------------------------------------------------------
 	// Internal Member Functions
 
-	// Complete (static)
+	// Complete
 	//
-	// Completes the asynchronous operation
-	static VIRTUAL_DISK_PROGRESS Complete(VirtualDiskAsyncResult^ asyncresult);
+	// Completes the operation
+	void Complete(void);
+
+	// CompleteSynchronous
+	//
+	// Completes the operation synchronously
+	void CompleteSynchronous(unsigned int status);
 
 private:
 
-	// Destructor / Finalizer
+	//-----------------------------------------------------------------------
+	// Private Member Functions
+
+	// CompletionCallback
 	//
-	~VirtualDiskAsyncResult();
-	!VirtualDiskAsyncResult();
+	// Callback method invoked when the operation has completed
+	static void CompletionCallback(unsigned int errorcode, unsigned int numbytes, NativeOverlapped* overlapped);
 
 	//-----------------------------------------------------------------------
 	// Member Variables
 
-	bool						m_disposed;			// Object disposal flag
 	VirtualDiskAsyncOperation	m_operation;		// Operation type
-	WaitHandle^					m_waithandle;		// Operation wait handle
+	ManualResetEvent^			m_event;			// Operation wait handle
 	NativeOverlapped*			m_overlapped;		// Native OVERLAPPED data
-	VirtualDiskSafeHandle^		m_safehandle;		// Virtual disk safe handle
+	AsyncCallback^				m_callback;			// User-defined callback 
 	Object^						m_state;			// User-defined state object
+	unsigned int				m_status;			// Operation status code
+	bool						m_synchronous;		// Flag for synchronous completion
 };
 
 //---------------------------------------------------------------------------

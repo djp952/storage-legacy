@@ -125,26 +125,18 @@ IAsyncResult^ VirtualDisk::BeginCompact(VirtualDiskCompactFlags flags, AsyncCall
 {
 	CHECK_DISPOSED(m_disposed);
 
-	ManualResetEvent^ waithandle = gcnew ManualResetEvent(false);
-	NativeOverlapped* overlapped = Overlapped(0, 0, waithandle->SafeWaitHandle->DangerousGetHandle(), nullptr).Pack(nullptr, nullptr);
-
 	// Initialize the compact parameters structure
 	zero_init<COMPACT_VIRTUAL_DISK_PARAMETERS> params;
 	params.Version = COMPACT_VIRTUAL_DISK_VERSION_1;
 
-	// Attempt to compact the virtual disk asynchronously
-	DWORD result = CompactVirtualDisk(VirtualDiskSafeHandle::Reference(m_handle), static_cast<COMPACT_VIRTUAL_DISK_FLAG>(flags), 
-		&params, reinterpret_cast<LPOVERLAPPED>(overlapped));
-	if(result != ERROR_IO_PENDING) {
+	// Construct the VirtualDiskAsyncResult instance for this operation
+	VirtualDiskAsyncResult^ asyncresult = gcnew VirtualDiskAsyncResult(VirtualDiskAsyncOperation::Compact, callback, state);
 
-		Overlapped::Free(overlapped);
-		throw gcnew Win32Exception(result);
-	}
+	// Attempt to compact the virtual disk asynchronously, complete the operation if it ran synchronously
+	DWORD result = CompactVirtualDisk(VirtualDiskSafeHandle::Reference(m_handle), static_cast<COMPACT_VIRTUAL_DISK_FLAG>(flags), &params, asyncresult);
+	if(result != ERROR_IO_PENDING) asyncresult->CompleteSynchronous(result);
 
-	// TODO: deal with callback
-
-	// The asynchronous operation is running, pass all the information into a new VirtualDiskAsyncResult	
-	return gcnew VirtualDiskAsyncResult(VirtualDiskAsyncOperation::Compact, waithandle, overlapped, m_handle, state);
+	return asyncresult;
 }
 
 //---------------------------------------------------------------------------
@@ -281,15 +273,7 @@ void VirtualDisk::EndCompact(IAsyncResult^ asyncresult)
 	VirtualDiskAsyncResult^ result = safe_cast<VirtualDiskAsyncResult^>(asyncresult);
 	if(result->Operation != VirtualDiskAsyncOperation::Compact) throw gcnew InvalidOperationException();
 
-	try {
-
-		// Complete the asynchronous operation and get the final progress information.  If any
-		// errors occurred during creation, throw the status code as a Win32Exception to the caller
-		VIRTUAL_DISK_PROGRESS progress = VirtualDiskAsyncResult::Complete(result);
-		if(progress.OperationStatus != ERROR_SUCCESS) throw gcnew Win32Exception(progress.OperationStatus);
-	}
-
-	finally { delete result; }					// Always dispose of the VirtualDiskAsyncResult
+	result->Complete();				// Complete the asynchronous operation
 }
 
 //---------------------------------------------------------------------------

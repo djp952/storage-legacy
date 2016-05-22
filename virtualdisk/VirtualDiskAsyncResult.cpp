@@ -31,54 +31,42 @@
 BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
-// VirtualDiskAsyncResult Constructor (internal)
+// VirtualDiskAsyncResult Constructor
 //
 // Arguments:
 //
-//	operation		- Asynchronous operation being performed
-//	waithandle		- WaitHandle instance for the async operation
-//	overlapped		- Packed NativeOverlapped pointer
-//	safehandle		- VirtualDiskSafeHandle instance
-//	state			- Caller-provided state object for the operation
+//	operation	- Asynchronous operation being performed
+//	callback	- User-provided AsyncCallback instance
+//	state		- User-provided state object
 
-VirtualDiskAsyncResult::VirtualDiskAsyncResult(VirtualDiskAsyncOperation operation, WaitHandle^ waithandle, NativeOverlapped* overlapped, 
-	VirtualDiskSafeHandle^ safehandle, Object^ state) : m_operation(operation), m_waithandle(waithandle), m_overlapped(overlapped), m_safehandle(safehandle),
-	m_state(state)
+VirtualDiskAsyncResult::VirtualDiskAsyncResult(VirtualDiskAsyncOperation operation, AsyncCallback^ callback, Object^ state) 
+	: m_operation(operation), m_callback(callback), m_state(state)
 {
-	if(Object::ReferenceEquals(waithandle, nullptr)) throw gcnew ArgumentNullException("waithandle");
-	if(overlapped == __nullptr) throw gcnew ArgumentNullException("overlapped");
-	if(Object::ReferenceEquals(safehandle, nullptr)) throw gcnew ArgumentNullException("safehandle");
+	// Construct a new manual reset event to act as the wait handle for the asynchronous operation
+	m_event = gcnew ManualResetEvent(false);
+
+	// Construct a new IOCompletionCallback for this operation and the associated NativeOverlapped pointer
+	IOCompletionCallback^ completioncallback = gcnew IOCompletionCallback(&VirtualDiskAsyncResult::CompletionCallback);
+	m_overlapped = Overlapped(0, 0, m_event->SafeWaitHandle->DangerousGetHandle(), this).Pack(completioncallback, nullptr);
+
+	ThreadPool::UnsafeQueueNativeOverlapped(m_overlapped);
 }
 
 //---------------------------------------------------------------------------
-// VirtualDiskAsyncResult Destructor
+// VirtualDiskAsyncResult LPOVERLAPPED conversion operator
 
-VirtualDiskAsyncResult::~VirtualDiskAsyncResult()
+VirtualDiskAsyncResult::operator LPOVERLAPPED()
 {
-	if(m_disposed) return;
-
-	delete m_waithandle;
-	this->!VirtualDiskAsyncResult();
-}
-
-//---------------------------------------------------------------------------
-// VirtualDiskAsyncResult Finalizer
-
-VirtualDiskAsyncResult::!VirtualDiskAsyncResult()
-{
-	if(m_overlapped) Overlapped::Free(m_overlapped);
-	m_overlapped = __nullptr;
+	return reinterpret_cast<LPOVERLAPPED>(m_overlapped);
 }
 
 //---------------------------------------------------------------------------
 // VirtualDiskAsyncResult::AsyncState::get
 //
-// Gets a user-defined object that qualifies or contains information about 
-// the asynchronous operation
+// Gets a user-defined object that qualifies the asynchronous operation
 
 Object^ VirtualDiskAsyncResult::AsyncState::get(void)
 {
-	CHECK_DISPOSED(m_disposed);
 	return m_state;
 }
 
@@ -89,47 +77,82 @@ Object^ VirtualDiskAsyncResult::AsyncState::get(void)
 
 WaitHandle^ VirtualDiskAsyncResult::AsyncWaitHandle::get(void)
 {
-	CHECK_DISPOSED(m_disposed);
-	return m_waithandle;
+	return m_event;
 }
 
 //---------------------------------------------------------------------------
-// VirtualDiskAsyncResult::Complete (static, internal)
+// VirtualDiskAsyncResult::Complete (internal)
 //
-// Completes the asynchronous operation
+// Completes the operation
 //
 // Arguments:
 //
-//	asyncresult		- VirtualDiskAsyncResult instance to complete
+//	NONE
 
-VIRTUAL_DISK_PROGRESS VirtualDiskAsyncResult::Complete(VirtualDiskAsyncResult^ asyncresult)
+void VirtualDiskAsyncResult::Complete(void)
 {
-	VIRTUAL_DISK_PROGRESS			progress;			// Operation progress information
-	DWORD							result;				// Result from function call
+	m_event->WaitOne();				// Wait for the operation to complete
+	m_event->Close();				// Close the manual reset event
 
-	if(Object::ReferenceEquals(asyncresult, nullptr)) throw gcnew ArgumentNullException("asyncresult");
+	// If an error status was set during completion, throw it as a Win32Exception
+	if(m_status != ERROR_SUCCESS) throw gcnew Win32Exception(m_status);
+}
 
-	asyncresult->m_waithandle->WaitOne();				// Wait for the async operation to complete
+//---------------------------------------------------------------------------
+// VirtualDiskAsyncResult::CompleteSynchronous (internal)
+//
+// Completes the operation synchronously
+//
+// Arguments:
+//
+//	status			- Status code for the operation
 
-	// Get the final operation progress to return to the caller
-	result = GetVirtualDiskOperationProgress(VirtualDiskSafeHandle::Reference(asyncresult->m_safehandle), 
-		reinterpret_cast<LPOVERLAPPED>(asyncresult->m_overlapped), &progress);
-	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
+void VirtualDiskAsyncResult::CompleteSynchronous(unsigned int status)
+{
+	m_event->Set();						// Set the manual reset event
+	m_synchronous = true;				// Operation completed synchronously
 
-	// Return the final progress as an unmanaged VIRTUAL_DISK_PROGRESS
-	return progress;
+	// Invoke the completion callback to finish the operation
+	CompletionCallback(status, 0, m_overlapped);
 }
 	
 //---------------------------------------------------------------------------
+// VirtualDiskAsyncResult::CompletionCallback (static)
+//
+// Callback method invoked when the operation has completed
+//
+// Arguments:
+//
+//	errorcode		- Operation error/status code
+//	numbytes		- Number of bytes transferred
+//	overlapped		- NativeOverlapped instance for the operation
+
+void VirtualDiskAsyncResult::CompletionCallback(unsigned int errorcode, unsigned int numbytes, NativeOverlapped* overlapped)
+{
+	UNREFERENCED_PARAMETER(numbytes);
+
+	// Unpack the NativeOverlapped and retrieve the VirtualDiskAsyncResult instance from it
+	VirtualDiskAsyncResult^ asyncresult = safe_cast<VirtualDiskAsyncResult^>(Overlapped::Unpack(overlapped)->AsyncResult);
+
+	// There is no completion callback from the virtual disk API calls, this callback is generated
+	// with the I/O completion port thread pool; wait for the event handle to be signaled
+	asyncresult->AsyncWaitHandle->WaitOne();
+
+	asyncresult->m_status = errorcode;				// Save the provided status/error code
+	Overlapped::Free(overlapped);					// Release the NativeOverlapped instance
+
+	// Invoke the user-provided AsyncCallback to complete the asynchronous operation
+	if(!Object::ReferenceEquals(asyncresult->m_callback, nullptr)) asyncresult->m_callback(asyncresult);
+}
+
+//---------------------------------------------------------------------------
 // VirtualDiskAsyncResult::CompletedSynchronously::get
 //
-// Gets a value that indicates whether the asynchronous operation completed 
-// synchronously
+// Gets a value that indicates whether the asynchronous operation completed synchronously
 
 bool VirtualDiskAsyncResult::CompletedSynchronously::get(void)
 {
-	CHECK_DISPOSED(m_disposed);
-	return false;
+	return m_synchronous;
 }
 
 //---------------------------------------------------------------------------
@@ -139,30 +162,17 @@ bool VirtualDiskAsyncResult::CompletedSynchronously::get(void)
 
 bool VirtualDiskAsyncResult::IsCompleted::get(void)
 {
-	CHECK_DISPOSED(m_disposed);
-	return m_waithandle->WaitOne(0);
+	return m_event->WaitOne(0);
 }
 
 //---------------------------------------------------------------------------
-// VirtualDiskAsyncResult::Operation::get
+// VirtualDiskAsyncResult::Operation::get (internal)
 //
 // Gets the VirtualDiskAsyncOperation value for this async result
 
 VirtualDiskAsyncOperation VirtualDiskAsyncResult::Operation::get(void)
 {
-	CHECK_DISPOSED(m_disposed);
 	return m_operation;
-}
-
-//---------------------------------------------------------------------------
-// VirtualDiskAsyncResult::VirtualDiskHandle::get (internal)
-//
-// Gets the virtual disk safe handle associated with this operation
-
-VirtualDiskSafeHandle^ VirtualDiskAsyncResult::VirtualDiskHandle::get(void)
-{
-	CHECK_DISPOSED(m_disposed);
-	return m_safehandle;
 }
 
 //---------------------------------------------------------------------------

@@ -29,13 +29,22 @@ namespace zuki.storage.virtualdisk.test
 	[TestClass()]
 	public class VirtualDiskOpen
 	{
+		void OnCompacted(IAsyncResult result)
+		{
+			int x = 123;
+			VirtualDisk.EndCompact(result);
+		}
+
 		[TestMethod(), TestCategory("Open Virtual Disk")]
 		public void VirtualDisk_OpenPath()
 		{
-			using (VirtualDisk vdisk = VirtualDisk.Open(@"D:\Virtual Machines\Virtual Hard Disks\BREHMM-LINUX-MV.vhdx"))
-			{
-				int x = 123;
-			}
+			VirtualDisk vdisk = VirtualDisk.Open(@"D:\Virtual Machines\Virtual Hard Disks\LINUX-BUILD.vhdx");
+			//{
+				IAsyncResult async = vdisk.BeginCompact(OnCompacted, null);
+			VirtualDisk.EndCompact(async);
+			//}
+
+			//System.Threading.Thread.Sleep(45000);
 		}
 	}
 }
