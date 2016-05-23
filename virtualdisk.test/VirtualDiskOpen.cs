@@ -21,6 +21,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -29,24 +30,31 @@ namespace zuki.storage.virtualdisk.test
 	[TestClass()]
 	public class VirtualDiskOpen
 	{
-		void OnCompacted(IAsyncResult result)
+		void OnProgress(int value)
 		{
-			int x = 123;
-
-			// this throws if the operation was cancelled - how do I feel about that
-			VirtualDisk.EndCompact(result);
+			System.Diagnostics.Debug.WriteLine(value.ToString());
 		}
 
 		[TestMethod(), TestCategory("Open Virtual Disk")]
-		public void VirtualDisk_OpenPath()
+		public async Task VirtualDisk_OpenPath()
 		{
-			VirtualDisk vdisk = VirtualDisk.Open(@"D:\Virtual Machines\Virtual Hard Disks\BREHMM-LINUX-MV.vhdx");
-			//{
-				IAsyncResult async = vdisk.BeginCompact(OnCompacted, null);
-			VirtualDisk.CancelCompact(async);
-			//}
+			IProgress<int> progress = new Progress<int>(new Action<int>(OnProgress));
 
-			System.Threading.Thread.Sleep(5000);
+			CancellationTokenSource cts = new CancellationTokenSource();
+
+			VirtualDisk vdisk = VirtualDisk.Open(@"D:\LINUX-BUILD.vhdx");
+			Task t = vdisk.CompactAsync(cts.Token, progress);
+			//cts.CancelAfter(1000);
+			try
+			{
+				await t;
+			}
+			catch (OperationCanceledException)
+			{
+				int x = 123;
+			}
+
+			int y = 123;
 		}
 	}
 }

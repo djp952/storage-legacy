@@ -46,9 +46,6 @@ value class	VirtualDiskType;
 // Class VirtualDisk
 //
 // TODO
-//
-// (APM) - Asynchronous Programming Model
-// (TAP) - Task-based Asynchronous Pattern
 //---------------------------------------------------------------------------
 
 public ref class VirtualDisk sealed
@@ -58,40 +55,23 @@ public:
 	//-----------------------------------------------------------------------
 	// Member Functions
 
-	// BeginCompact (APM)
-	//
-	// Begins an asynchronous compact operation
-	IAsyncResult^ BeginCompact(AsyncCallback^ callback, Object^ state);
-	IAsyncResult^ BeginCompact(VirtualDiskCompactFlags flags, AsyncCallback^ callback, Object^ state);
-
-	// CancelCompact (APM)
-	//
-	// Cancels an asynchronous compact operation
-	static void CancelCompact(IAsyncResult^ asyncresult);
-
 	// Compact
 	//
 	// Synchronously compacts the virtual disk
 	void Compact(void);
 	void Compact(VirtualDiskCompactFlags flags);
 
-	// CompactAsync (TAP)
+	// CompactAsync
 	//
 	// Asynchronously compacts the virtual disk
 	Task^ CompactAsync(void);
 	Task^ CompactAsync(VirtualDiskCompactFlags flags);
 	Task^ CompactAsync(CancellationToken cancellation);
 	Task^ CompactAsync(VirtualDiskCompactFlags flags, CancellationToken cancellation);
-	// todo: progress via IProgress
-	//Task^ CompactAsync(IProgress<int>^ progress);
-	//Task^ CompactAsync(VirtualDiskCompactFlags flags, IProgress<int>^ progress);
-	//Task^ CompactAsync(CancellationToken cancellation, IProgress<int>^ progress);
-	//Task^ CompactAsync(VirtualDiskCompactFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
-	
-	// EndCompact (APM)
-	//
-	// Completes an asynchronous compact operation
-	static void EndCompact(IAsyncResult^ asyncresult);
+	Task^ CompactAsync(IProgress<int>^ progress);
+	Task^ CompactAsync(VirtualDiskCompactFlags flags, IProgress<int>^ progress);
+	Task^ CompactAsync(CancellationToken cancellation, IProgress<int>^ progress);
+	Task^ CompactAsync(VirtualDiskCompactFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
 
 	// Open
 	//
@@ -276,6 +256,14 @@ private:
 	// Destructor
 	//
 	~VirtualDisk();
+
+	//-----------------------------------------------------------------------
+	// Private Member Functions
+
+	// BeginCompact
+	//
+	// Begins an asynchronous compact operation
+	IAsyncResult^ BeginCompact(VirtualDiskCompactFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
 
 	//-----------------------------------------------------------------------
 	// Member Variables

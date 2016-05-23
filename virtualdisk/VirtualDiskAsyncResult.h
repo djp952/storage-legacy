@@ -48,6 +48,27 @@ ref class VirtualDiskAsyncResult : IAsyncResult
 {
 public:
 
+	// Instance Constructor
+	//
+	VirtualDiskAsyncResult(VirtualDiskSafeHandle^ handle, CancellationToken cancellation, IProgress<int>^ progress);
+
+	// LPOVERLAPPED conversion operator
+	//
+	operator LPOVERLAPPED();
+
+	//-----------------------------------------------------------------------
+	// Member Funcitons
+
+	// Complete (static)
+	//
+	// Completes an asynchronous operation
+	static void Complete(IAsyncResult^ asyncresult);
+
+	// CompleteSynchronously
+	//
+	// Completes the operation synchronously
+	void CompleteSynchronously(unsigned int status);
+
 	//-----------------------------------------------------------------------
 	// Properties
 
@@ -83,74 +104,29 @@ public:
 		virtual bool get(void);
 	}
 
-internal:
-
-	// Instance Constructor
-	//
-	VirtualDiskAsyncResult(VirtualDiskAsyncOperation operation, VirtualDiskSafeHandle^ handle, AsyncCallback^ callback, Object^ state);
-
-	// LPOVERLAPPED conversion operator
-	//
-	operator LPOVERLAPPED();
+private:
 
 	//-----------------------------------------------------------------------
-	// Internal Properties
-
-	// Operation
-	//
-	// Gets the VirtualDiskAsyncOperation value of this async result
-	property VirtualDiskAsyncOperation Operation
-	{
-		VirtualDiskAsyncOperation get(void);
-	}
-
-	// Handle
-	//
-	// Gets the VirtualDiskSafeHandle instance for this operation
-	property VirtualDiskSafeHandle^ Handle
-	{
-		VirtualDiskSafeHandle^ get(void);
-	}
-
-	//-----------------------------------------------------------------------
-	// Internal Member Functions
+	// Private Member Functions
 
 	// Cancel
 	//
 	// Attempts to cancel the operation
 	void Cancel(void);
 
-	// Complete
+	// ProgressThread
 	//
-	// Completes the operation
-	void Complete(void);
-
-	// CompleteSynchronous
-	//
-	// Completes the operation synchronously
-	void CompleteSynchronous(unsigned int status);
-
-private:
-
-	//-----------------------------------------------------------------------
-	// Private Member Functions
-
-	// CompletionCallback
-	//
-	// Callback method invoked when the operation has completed
-	static void CompletionCallback(unsigned int errorcode, unsigned int numbytes, NativeOverlapped* overlapped);
+	// Thread entry point for progress reporting
+	void ProgressThread(Object^ state);
 
 	//-----------------------------------------------------------------------
 	// Member Variables
 
-	VirtualDiskAsyncOperation	m_operation;		// Operation type
-	VirtualDiskSafeHandle^		m_handle;			// Virtual disk safe handle
-	ManualResetEvent^			m_event;			// Operation wait handle
-	NativeOverlapped*			m_overlapped;		// Native OVERLAPPED data
-	AsyncCallback^				m_callback;			// User-defined callback 
-	Object^						m_state;			// User-defined state object
-	unsigned int				m_status;			// Operation status code
-	bool						m_synchronous;		// Flag for synchronous completion
+	VirtualDiskSafeHandle^			m_handle;			// Virtual disk safe handle
+	ManualResetEvent^				m_event;			// Operation wait handle
+	NativeOverlapped*				m_overlapped;		// Native OVERLAPPED data
+	bool							m_synchronous;		// Flag for synchronous completion
+	IProgress<int>^					m_progress;			// Progress callback
 };
 
 //---------------------------------------------------------------------------

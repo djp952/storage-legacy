@@ -23,7 +23,6 @@
 #include "stdafx.h"
 #include "VirtualDiskAsyncResult.h"
 
-#include "VirtualDiskAsyncOperation.h"
 #include "VirtualDiskSafeHandle.h"
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
@@ -35,24 +34,22 @@ BEGIN_ROOT_NAMESPACE(zuki::storage)
 //
 // Arguments:
 //
-//	operation	- Asynchronous operation being performed
-//	handle		- VirtualDiskSafeHandle instance
-//	callback	- User-provided AsyncCallback instance
-//	state		- User-provided state object
+//	handle			- VirtualDiskSafeHandle instance for the operation
+//	cancellation	- CancellationToken instance
+//	progress		- Progress callback
 
-VirtualDiskAsyncResult::VirtualDiskAsyncResult(VirtualDiskAsyncOperation operation, VirtualDiskSafeHandle^ handle, AsyncCallback^ callback, 
-	Object^ state) : m_operation(operation), m_handle(handle), m_callback(callback), m_state(state)
+VirtualDiskAsyncResult::VirtualDiskAsyncResult(VirtualDiskSafeHandle^ handle, CancellationToken cancellation, IProgress<int>^ progress) 
+	: m_handle(handle), m_progress(progress)
 {
 	if(Object::ReferenceEquals(handle, nullptr)) throw gcnew ArgumentNullException("handle");
+	cancellation.ThrowIfCancellationRequested();
 
-	// Construct a new manual reset event to act as the wait handle for the asynchronous operation
 	m_event = gcnew ManualResetEvent(false);
+	m_overlapped = Overlapped(0, 0, m_event->SafeWaitHandle->DangerousGetHandle(), this).Pack(nullptr, nullptr);
+	if(cancellation.CanBeCanceled) cancellation.Register(gcnew Action(this, &VirtualDiskAsyncResult::Cancel));
 
-	// Construct a new IOCompletionCallback for this operation and the associated NativeOverlapped pointer
-	IOCompletionCallback^ completioncallback = gcnew IOCompletionCallback(&VirtualDiskAsyncResult::CompletionCallback);
-	m_overlapped = Overlapped(0, 0, m_event->SafeWaitHandle->DangerousGetHandle(), this).Pack(completioncallback, nullptr);
-
-	ThreadPool::UnsafeQueueNativeOverlapped(m_overlapped);
+	// If progress of the operation is requested, start a thread pool thread to handle that
+	if(!Object::ReferenceEquals(progress, nullptr)) ThreadPool::QueueUserWorkItem(gcnew WaitCallback(this, &VirtualDiskAsyncResult::ProgressThread));
 }
 
 //---------------------------------------------------------------------------
@@ -70,7 +67,8 @@ VirtualDiskAsyncResult::operator LPOVERLAPPED()
 
 Object^ VirtualDiskAsyncResult::AsyncState::get(void)
 {
-	return m_state;
+	// This is a dumbed-down AsyncResult class, there is no state object
+	return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -84,7 +82,7 @@ WaitHandle^ VirtualDiskAsyncResult::AsyncWaitHandle::get(void)
 }
 
 //---------------------------------------------------------------------------
-// VirtualDiskAsyncResult::Cancel (internal)
+// VirtualDiskAsyncResult::Cancel (private)
 //
 // Attempts to cancel the operation
 //
@@ -95,29 +93,50 @@ WaitHandle^ VirtualDiskAsyncResult::AsyncWaitHandle::get(void)
 void VirtualDiskAsyncResult::Cancel(void)
 {
 	// Attempt to cancel the asynchronous operation
-	if(!CancelIoEx(VirtualDiskSafeHandle::Reference(m_handle), reinterpret_cast<LPOVERLAPPED>(m_overlapped))) throw gcnew Win32Exception(GetLastError());
+	try { CancelIoEx(VirtualDiskSafeHandle::Reference(m_handle), reinterpret_cast<LPOVERLAPPED>(m_overlapped)); }
+	catch(Exception^) { /* DO NOTHING */ }
 }
 
 //---------------------------------------------------------------------------
-// VirtualDiskAsyncResult::Complete (internal)
+// VirtualDiskAsyncResult::Complete (static)
 //
-// Completes the operation
+// Completes an asynchronous operation
 //
 // Arguments:
 //
-//	NONE
+//	asyncresult		- IAsyncResult instance to be completed
 
-void VirtualDiskAsyncResult::Complete(void)
+void VirtualDiskAsyncResult::Complete(IAsyncResult^ asyncresult)
 {
-	m_event->WaitOne();				// Wait for the operation to complete
-	m_event->Close();				// Close the manual reset event
+	VIRTUAL_DISK_PROGRESS			progress;			// Final operation progress
 
-	// If an error status was set during completion, throw it as a Win32Exception
-	if(m_status != ERROR_SUCCESS) throw gcnew Win32Exception(m_status);
+	// Cast the IAsyncResult interface back into a VirtualDiskAsyncResult instance
+	VirtualDiskAsyncResult^ vdiskresult = safe_cast<VirtualDiskAsyncResult^>(asyncresult);
+
+	// Wait for the event to be signaled and close the handle
+	vdiskresult->m_event->WaitOne();
+	vdiskresult->m_event->Close();
+
+	// Get the result from the asynchronous operation prior to releasing the OVERLAPPED structure
+	DWORD result = GetVirtualDiskOperationProgress(VirtualDiskSafeHandle::Reference(vdiskresult->m_handle), reinterpret_cast<LPOVERLAPPED>(vdiskresult->m_overlapped), &progress);
+
+	// Release and reset the NativeOverlapped pointer
+	Overlapped::Free(vdiskresult->m_overlapped);
+	vdiskresult->m_overlapped = __nullptr;
+
+	// Send a final progress report if an IProgress<> was provided during construction
+	if(!Object::ReferenceEquals(vdiskresult->m_progress, nullptr)) vdiskresult->m_progress->Report(100);
+
+	// If an error occurred getting the operation status, throw that as an exception
+	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
+
+	// If a cancellation/error status was set on the operation, throw an exception
+	if(progress.OperationStatus == ERROR_OPERATION_ABORTED) throw gcnew OperationCanceledException();
+	else if(progress.OperationStatus != ERROR_SUCCESS) throw gcnew Win32Exception(progress.OperationStatus);
 }
 
 //---------------------------------------------------------------------------
-// VirtualDiskAsyncResult::CompleteSynchronous (internal)
+// VirtualDiskAsyncResult::CompleteSynchronously
 //
 // Completes the operation synchronously
 //
@@ -125,49 +144,16 @@ void VirtualDiskAsyncResult::Complete(void)
 //
 //	status			- Status code for the operation
 
-void VirtualDiskAsyncResult::CompleteSynchronous(unsigned int status)
+void VirtualDiskAsyncResult::CompleteSynchronously(unsigned int status)
 {
-	m_event->Set();						// Set the manual reset event
 	m_synchronous = true;				// Operation completed synchronously
+	m_event->Close();					// Close the event object handle
 
-	// Invoke the completion callback to finish the operation
-	CompletionCallback(status, 0, m_overlapped);
-}
-	
-//---------------------------------------------------------------------------
-// VirtualDiskAsyncResult::CompletionCallback (static)
-//
-// Callback method invoked when the operation has completed
-//
-// Arguments:
-//
-//	errorcode		- Operation error/status code
-//	numbytes		- Number of bytes transferred
-//	overlapped		- NativeOverlapped instance for the operation
+	Overlapped::Free(m_overlapped);		// Release the OVERLAPPED structure
+	m_overlapped = __nullptr;			// Reset the OVERLAPPED pointer
 
-void VirtualDiskAsyncResult::CompletionCallback(unsigned int errorcode, unsigned int numbytes, NativeOverlapped* overlapped)
-{
-	VIRTUAL_DISK_PROGRESS			progress;			// Final operation progress
-
-	UNREFERENCED_PARAMETER(errorcode);
-	UNREFERENCED_PARAMETER(numbytes);
-
-	// Unpack the NativeOverlapped and retrieve the VirtualDiskAsyncResult instance from it
-	VirtualDiskAsyncResult^ asyncresult = safe_cast<VirtualDiskAsyncResult^>(Overlapped::Unpack(overlapped)->AsyncResult);
-
-	// There is no completion callback from the virtual disk API calls, this callback is generated
-	// with the I/O completion port thread pool; wait for the event handle to be signaled
-	asyncresult->AsyncWaitHandle->WaitOne();
-
-	// The errorcode argument is worthless here, get the actual operation status.  This should always succeed
-	DWORD result = GetVirtualDiskOperationProgress(VirtualDiskSafeHandle::Reference(asyncresult->m_handle), reinterpret_cast<LPOVERLAPPED>(overlapped), &progress);
-	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
-	
-	asyncresult->m_status = progress.OperationStatus;	// Get the operation status
-	Overlapped::Free(overlapped);						// Release the NativeOverlapped instance
-
-	// Invoke the user-provided AsyncCallback to complete the asynchronous operation
-	if(!Object::ReferenceEquals(asyncresult->m_callback, nullptr)) asyncresult->m_callback(asyncresult);
+	// If the provided status code is an error code, throw it as an exception
+	if(status != ERROR_SUCCESS) throw gcnew Win32Exception(status);
 }
 
 //---------------------------------------------------------------------------
@@ -181,16 +167,6 @@ bool VirtualDiskAsyncResult::CompletedSynchronously::get(void)
 }
 
 //---------------------------------------------------------------------------
-// VirtualDiskAsyncResult::Handle::get
-//
-// Gets the VirtualDiskSafeHandle instance for this operation
-
-VirtualDiskSafeHandle^ VirtualDiskAsyncResult::Handle::get(void)
-{
-	return m_handle;
-}
-	
-//---------------------------------------------------------------------------
 // VirtualDiskAsyncResult::IsCompleted::get
 //
 // Gets a value that indicates whether the asynchronous operation has completed
@@ -201,13 +177,35 @@ bool VirtualDiskAsyncResult::IsCompleted::get(void)
 }
 
 //---------------------------------------------------------------------------
-// VirtualDiskAsyncResult::Operation::get (internal)
+// VirtualDiskAsyncResult::ProgressThread (private)
 //
-// Gets the VirtualDiskAsyncOperation value for this async result
+// Worker thread used to implement IProgress<> against the async result object
+//
+// Arguments:
+//
+//	state		- Caller-provided state object (unused)
 
-VirtualDiskAsyncOperation VirtualDiskAsyncResult::Operation::get(void)
+void VirtualDiskAsyncResult::ProgressThread(Object^ state)
 {
-	return m_operation;
+	VIRTUAL_DISK_PROGRESS		progress;		// Async operation progress
+
+	UNREFERENCED_PARAMETER(state);
+
+	// If there was no IProgress<int> registered, there is no reason to have this thread
+	if(Object::ReferenceEquals(m_progress, nullptr)) return;
+
+	// Report progress every second until the operation has completed
+	while(m_event->WaitOne(1000) == false) {
+
+		try {
+
+			// Get the result from the asynchronous operation prior to releasing the OVERLAPPED structure
+			DWORD result = GetVirtualDiskOperationProgress(VirtualDiskSafeHandle::Reference(m_handle), reinterpret_cast<LPOVERLAPPED>(m_overlapped), &progress);
+			if((result == ERROR_SUCCESS) && (progress.CompletionValue > 0)) m_progress->Report((100ULL * progress.CurrentValue) / progress.CompletionValue);
+		}
+		
+		catch(Exception^) { /* DO NOTHING */ }
+	}
 }
 
 //---------------------------------------------------------------------------

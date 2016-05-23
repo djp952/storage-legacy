@@ -86,9 +86,6 @@
     <ClInclude Include="VirtualDiskCreateParameters2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VirtualDiskAsyncOperation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="VirtualDiskSafeHandle.h">
       <Filter>Header Files</Filter>
     </ClInclude>

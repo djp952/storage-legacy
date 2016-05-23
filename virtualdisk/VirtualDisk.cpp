@@ -24,7 +24,6 @@
 #include "VirtualDisk.h"
 
 #include "VirtualDiskAccess.h"
-#include "VirtualDiskAsyncOperation.h"
 #include "VirtualDiskAsyncResult.h"
 #include "VirtualDiskCompactFlags.h"
 #include "VirtualDiskOpenFlags.h"
@@ -95,33 +94,17 @@ String^ VirtualDisk::AttachedDevicePath::get(void)
 }
 
 //-----------------------------------------------------------------------------
-// VirtualDisk::BeginCompact
-//
-// Starts an asynchronous compact operation
-//
-// Arguments:
-//
-//	callback		- Method to be called when operation is complete
-//	state			- User-provided state object for the operation
-
-IAsyncResult^ VirtualDisk::BeginCompact(AsyncCallback^ callback, Object^ state)
-{
-	CHECK_DISPOSED(m_disposed);
-	return BeginCompact(VirtualDiskCompactFlags::None, callback, state);
-}
-
-//-----------------------------------------------------------------------------
-// VirtualDisk::BeginCompact
+// VirtualDisk::BeginCompact (private)
 //
 // Starts an asynchronous compact operation
 //
 // Arguments:
 //
 //	flags			- Compact operation flags
-//	callback		- Method to be called when operation is complete
-//	state			- User-provided state object for the operation
+//	cancellation	- CancellationToken for the asynchronous operation
+//	progress		- IProgress<int> on which to report operatioj progress
 
-IAsyncResult^ VirtualDisk::BeginCompact(VirtualDiskCompactFlags flags, AsyncCallback^ callback, Object^ state)
+IAsyncResult^ VirtualDisk::BeginCompact(VirtualDiskCompactFlags flags, CancellationToken cancellation, IProgress<int>^ progress)
 {
 	CHECK_DISPOSED(m_disposed);
 
@@ -130,11 +113,11 @@ IAsyncResult^ VirtualDisk::BeginCompact(VirtualDiskCompactFlags flags, AsyncCall
 	params.Version = COMPACT_VIRTUAL_DISK_VERSION_1;
 
 	// Construct the VirtualDiskAsyncResult instance for this operation
-	VirtualDiskAsyncResult^ asyncresult = gcnew VirtualDiskAsyncResult(VirtualDiskAsyncOperation::Compact, m_handle, callback, state);
+	VirtualDiskAsyncResult^ asyncresult = gcnew VirtualDiskAsyncResult(m_handle, cancellation, progress);
 
-	// Attempt to compact the virtual disk asynchronously, complete the operation if it ran synchronously
+	// Attempt to compact the virtual disk asynchronously using the provided parameters
 	DWORD result = CompactVirtualDisk(VirtualDiskSafeHandle::Reference(m_handle), static_cast<COMPACT_VIRTUAL_DISK_FLAG>(flags), &params, asyncresult);
-	if(result != ERROR_IO_PENDING) asyncresult->CompleteSynchronous(result);
+	if(result != ERROR_IO_PENDING) asyncresult->CompleteSynchronously(result);
 
 	return asyncresult;
 }
@@ -160,24 +143,6 @@ unsigned int VirtualDisk::BlockSize::get(void)
 	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
 
 	return info.Size.BlockSize;
-}
-
-//---------------------------------------------------------------------------
-// VirtualDisk::CancelCompact (static)
-//
-// Cancels an asynchronous virtual disk compact operation
-//
-// Arguments:
-//
-//	asyncresult		- IAsyncResult instance returned by BeginCompact()
-
-void VirtualDisk::CancelCompact(IAsyncResult^ asyncresult)
-{
-	// The IAsyncResult reference must be a VirtualDiskAsyncResult from BeginCompact()
-	VirtualDiskAsyncResult^ result = safe_cast<VirtualDiskAsyncResult^>(asyncresult);
-	if(result->Operation != VirtualDiskAsyncOperation::Compact) throw gcnew InvalidOperationException();
-
-	result->Cancel();					// Attempt to cancel the operation
 }
 
 //---------------------------------------------------------------------------
@@ -207,7 +172,7 @@ void VirtualDisk::Compact(void)
 void VirtualDisk::Compact(VirtualDiskCompactFlags flags)
 {
 	CHECK_DISPOSED(m_disposed);
-	EndCompact(BeginCompact(flags, nullptr, nullptr));
+	VirtualDiskAsyncResult::Complete(BeginCompact(flags, CancellationToken::None, nullptr));
 }
 
 //---------------------------------------------------------------------------
@@ -222,7 +187,7 @@ void VirtualDisk::Compact(VirtualDiskCompactFlags flags)
 Task^ VirtualDisk::CompactAsync(void)
 {
 	CHECK_DISPOSED(m_disposed);
-	return CompactAsync(VirtualDiskCompactFlags::None, CancellationToken::None);
+	return CompactAsync(VirtualDiskCompactFlags::None, CancellationToken::None, nullptr);
 }
 
 //---------------------------------------------------------------------------
@@ -237,7 +202,7 @@ Task^ VirtualDisk::CompactAsync(void)
 Task^ VirtualDisk::CompactAsync(VirtualDiskCompactFlags flags)
 {
 	CHECK_DISPOSED(m_disposed);
-	return CompactAsync(flags, CancellationToken::None);
+	return CompactAsync(flags, CancellationToken::None, nullptr);
 }
 
 //---------------------------------------------------------------------------
@@ -252,7 +217,7 @@ Task^ VirtualDisk::CompactAsync(VirtualDiskCompactFlags flags)
 Task^ VirtualDisk::CompactAsync(CancellationToken cancellation)
 {
 	CHECK_DISPOSED(m_disposed);
-	return CompactAsync(VirtualDiskCompactFlags::None, cancellation);
+	return CompactAsync(VirtualDiskCompactFlags::None, cancellation, nullptr);
 }
 
 //---------------------------------------------------------------------------
@@ -268,30 +233,73 @@ Task^ VirtualDisk::CompactAsync(CancellationToken cancellation)
 Task^ VirtualDisk::CompactAsync(VirtualDiskCompactFlags flags, CancellationToken cancellation)
 {
 	CHECK_DISPOSED(m_disposed);
-	
-	// todo: deal with cancellation token
-
-	// Create a Task<> for this operation from the standard Begin/End, also indicating it is a long running task
-	return Task::Factory->FromAsync(gcnew Func<VirtualDiskCompactFlags, AsyncCallback^, Object^, IAsyncResult^>(this, &VirtualDisk::BeginCompact),
-		gcnew Action<IAsyncResult^>(&VirtualDisk::EndCompact), flags, nullptr, TaskCreationOptions::LongRunning);
+	return CompactAsync(flags, cancellation, nullptr);
 }
 
 //---------------------------------------------------------------------------
-// VirtualDisk::EndCompact (static)
+// VirtualDisk::CompactAsync
 //
-// Completes an asynchronous virtual disk compact operation
+// Asynchronously compacts the virtual disk
 //
 // Arguments:
 //
-//	asyncresult		- IAsyncResult instance returned by BeginCompact()
+//	progress		- Optional IProgress<int> on which to report progress
 
-void VirtualDisk::EndCompact(IAsyncResult^ asyncresult)
+Task^ VirtualDisk::CompactAsync(IProgress<int>^ progress)
 {
-	// The IAsyncResult reference must be a VirtualDiskAsyncResult from BeginCompact()
-	VirtualDiskAsyncResult^ result = safe_cast<VirtualDiskAsyncResult^>(asyncresult);
-	if(result->Operation != VirtualDiskAsyncOperation::Compact) throw gcnew InvalidOperationException();
+	CHECK_DISPOSED(m_disposed);
+	return CompactAsync(VirtualDiskCompactFlags::None, CancellationToken::None, progress);
+}
 
-	result->Complete();				// Complete the asynchronous operation
+//---------------------------------------------------------------------------
+// VirtualDisk::CompactAsync
+//
+// Asynchronously compacts the virtual disk
+//
+// Arguments:
+//
+//	flags			- Flags to control the compaction operation
+//	progress		- Optional IProgress<int> on which to report progress
+
+Task^ VirtualDisk::CompactAsync(VirtualDiskCompactFlags flags, IProgress<int>^ progress)
+{
+	CHECK_DISPOSED(m_disposed);
+	return CompactAsync(flags, CancellationToken::None, progress);
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::CompactAsync
+//
+// Asynchronously compacts the virtual disk
+//
+// Arguments:
+//
+//	cancellation	- Token to monitor for cancellation requests
+//	progress		- Optional IProgress<int> on which to report progress
+
+Task^ VirtualDisk::CompactAsync(CancellationToken cancellation, IProgress<int>^ progress)
+{
+	CHECK_DISPOSED(m_disposed);
+	return CompactAsync(VirtualDiskCompactFlags::None, cancellation, progress);
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::CompactAsync
+//
+// Asynchronously compacts the virtual disk
+//
+// Arguments:
+//
+//	flags			- Flags to control the compaction operation
+//	cancellation	- Token to monitor for cancellation requests
+//	progress		- Optional IProgress<int> on which to report progress
+
+Task^ VirtualDisk::CompactAsync(VirtualDiskCompactFlags flags, CancellationToken cancellation, IProgress<int>^ progress)
+{
+	CHECK_DISPOSED(m_disposed);
+
+	// Create a Task<> for this operation invoking the Begin method manually since it's non-standard
+	return Task::Factory->FromAsync(BeginCompact(flags, cancellation, progress), gcnew Action<IAsyncResult^>(&VirtualDiskAsyncResult::Complete));
 }
 
 //---------------------------------------------------------------------------
