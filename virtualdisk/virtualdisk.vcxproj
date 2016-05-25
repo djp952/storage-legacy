@@ -160,9 +160,11 @@
     <ClInclude Include="VirtualDiskAttachParameters.h" />
     <ClInclude Include="VirtualDiskCompactFlags.h" />
     <ClInclude Include="VirtualDiskCreateParameters2.h" />
+    <ClInclude Include="VirtualDiskExpandFlags.h" />
     <ClInclude Include="VirtualDiskOpenFlags.h" />
     <ClInclude Include="VirtualDiskParentDiskParameters.h" />
     <ClInclude Include="VirtualDiskOpenParameters.h" />
+    <ClInclude Include="VirtualDiskResizeFlags.h" />
     <ClInclude Include="VirtualDiskSafeHandle.h" />
     <ClInclude Include="VirtualDiskSourceDiskParameters.h" />
     <ClInclude Include="VirtualDiskUtil.h" />

@@ -38,23 +38,31 @@ namespace zuki.storage.virtualdisk.test
 		[TestMethod(), TestCategory("Open Virtual Disk")]
 		public async Task VirtualDisk_OpenPath()
 		{
-			IProgress<int> progress = new Progress<int>(new Action<int>(OnProgress));
-
-			CancellationTokenSource cts = new CancellationTokenSource();
-
-			VirtualDisk vdisk = VirtualDisk.Open(@"D:\LINUX-BUILD.vhdx");
-			Task t = vdisk.CompactAsync(cts.Token, progress);
-			//cts.CancelAfter(1000);
-			try
+			using (VirtualDisk disk = VirtualDisk.Create("D:\\test.vhd"))
 			{
-				await t;
-			}
-			catch (OperationCanceledException)
-			{
-				int x = 123;
 			}
 
-			int y = 123;
+
+			//IProgress<int> progress = new Progress<int>(new Action<int>(OnProgress));
+
+			//CancellationTokenSource cts = new CancellationTokenSource();
+
+			//VirtualDisk vdisk = VirtualDisk.Open(@"D:\LINUX-BUILD.vhdx");
+			//vdisk.CompactTest();
+			//Thread.Sleep(60000);
+
+			//Task t = vdisk.ExpandAsync(2 * 34359738368L, VirtualDiskExpandFlags.None, cts.Token, progress);
+			////cts.CancelAfter(1000);
+			//try
+			//{
+			//	await t;
+			//}
+			//catch (OperationCanceledException)
+			//{
+			//	int x = 123;
+			//}
+
+			//int y = 123;
 		}
 	}
 }

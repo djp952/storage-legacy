@@ -40,8 +40,8 @@ ref class	VirtualDiskSafeHandle;
 //---------------------------------------------------------------------------
 // Class VirtualDiskAsyncResult (internal)
 //
-// IAsyncResult-based object used to manage the asynchronous OVERLAPPED calls
-// to the virtual disk functions
+// IAsyncResult-based object used to manage the asynchronous calls to
+// virtual disk API functions
 //---------------------------------------------------------------------------
 
 ref class VirtualDiskAsyncResult : IAsyncResult
@@ -50,19 +50,16 @@ public:
 
 	// Instance Constructor
 	//
-	VirtualDiskAsyncResult(VirtualDiskSafeHandle^ handle, CancellationToken cancellation, IProgress<int>^ progress);
-
-	// LPOVERLAPPED conversion operator
-	//
-	operator LPOVERLAPPED();
+	VirtualDiskAsyncResult(VirtualDiskSafeHandle^ handle, WaitHandle^ waithandle, NativeOverlapped* overlapped,
+		CancellationToken cancellation, IProgress<int>^ progress);
 
 	//-----------------------------------------------------------------------
 	// Member Funcitons
 
-	// Complete (static)
+	// CompleteAsynchronously (static)
 	//
-	// Completes an asynchronous operation
-	static void Complete(IAsyncResult^ asyncresult);
+	// Completes the operation asynchronously
+	static void CompleteAsynchronously(IAsyncResult^ asyncresult);
 
 	// CompleteSynchronously
 	//
@@ -114,6 +111,11 @@ private:
 	// Attempts to cancel the operation
 	void Cancel(void);
 
+	// Complete
+	//
+	// Completes the operation
+	void Complete(void);
+
 	// ProgressThread
 	//
 	// Thread entry point for progress reporting
@@ -123,9 +125,11 @@ private:
 	// Member Variables
 
 	VirtualDiskSafeHandle^			m_handle;			// Virtual disk safe handle
-	ManualResetEvent^				m_event;			// Operation wait handle
+	WaitHandle^						m_waithandle;		// Operation wait handle
 	NativeOverlapped*				m_overlapped;		// Native OVERLAPPED data
 	bool							m_synchronous;		// Flag for synchronous completion
+	int								m_completed;		// Flag if operation completed
+	CancellationTokenRegistration	m_cancelreg;		// Cancellation token registration
 	IProgress<int>^					m_progress;			// Progress callback
 };
 

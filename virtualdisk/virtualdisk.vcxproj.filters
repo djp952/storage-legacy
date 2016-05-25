@@ -104,6 +104,12 @@
     <ClInclude Include="VirtualDiskOpenFlags.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="VirtualDiskResizeFlags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VirtualDiskExpandFlags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="version.ini" />

@@ -38,7 +38,9 @@ BEGIN_ROOT_NAMESPACE(zuki::storage)
 //
 enum class	VirtualDiskAccess;
 enum class	VirtualDiskCompactFlags;
+enum class	VirtualDiskExpandFlags;
 enum class	VirtualDiskOpenFlags;
+enum class	VirtualDiskResizeFlags;
 ref class	VirtualDiskSafeHandle;
 value class	VirtualDiskType;
 
@@ -64,16 +66,38 @@ public:
 	// CompactAsync
 	//
 	// Asynchronously compacts the virtual disk
-	Task^ CompactAsync(void);
-	Task^ CompactAsync(VirtualDiskCompactFlags flags);
-	Task^ CompactAsync(CancellationToken cancellation);
-	Task^ CompactAsync(VirtualDiskCompactFlags flags, CancellationToken cancellation);
-	Task^ CompactAsync(IProgress<int>^ progress);
-	Task^ CompactAsync(VirtualDiskCompactFlags flags, IProgress<int>^ progress);
-	Task^ CompactAsync(CancellationToken cancellation, IProgress<int>^ progress);
+	//Task^ CompactAsync(void);
+	//Task^ CompactAsync(VirtualDiskCompactFlags flags);
+	//Task^ CompactAsync(CancellationToken cancellation);
+	//Task^ CompactAsync(VirtualDiskCompactFlags flags, CancellationToken cancellation);
+	//Task^ CompactAsync(IProgress<int>^ progress);
+	//Task^ CompactAsync(VirtualDiskCompactFlags flags, IProgress<int>^ progress);
+	//Task^ CompactAsync(CancellationToken cancellation, IProgress<int>^ progress);
 	Task^ CompactAsync(VirtualDiskCompactFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
 
-	// Open
+	// Create
+	//
+	// Synchronously creates a new virtual disk
+	static VirtualDisk^ Create(String^ path);
+
+	// CreateAsync
+	//
+	// Asynchronously creates a new virtual disk
+	static Task<VirtualDisk^>^ CreateAsync(String^ path, CancellationToken cancellation, IProgress<int>^ progress);
+
+	// ExpandAsync
+	//
+	// Asynchronously expands the virtual disk
+	//Task^ ExpandAsync(__int64 newsize);
+	//Task^ ExpandAsync(__int64 newsize, VirtualDiskExpandFlags flags);
+	//Task^ ExpandAsync(__int64 newsize, CancellationToken cancellation);
+	//Task^ ExpandAsync(__int64 newsize, VirtualDiskExpandFlags flags, CancellationToken cancellation);
+	//Task^ ExpandAsync(__int64 newsize, IProgress<int>^ progress);
+	//Task^ ExpandAsync(__int64 newsize, VirtualDiskExpandFlags flags, IProgress<int>^ progress);
+	//Task^ ExpandAsync(__int64 newsize, CancellationToken cancellation, IProgress<int>^ progress);
+	Task^ ExpandAsync(__int64 newsize, VirtualDiskExpandFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+
+	// Open (static)
 	//
 	// Opens an existing virtual disk
 	static VirtualDisk^ Open(String^ path);
@@ -83,6 +107,24 @@ public:
 	static VirtualDisk^ Open(VirtualDiskType type, String^ path, VirtualDiskAccess access);
 	static VirtualDisk^ Open(VirtualDiskType type, String^ path, VirtualDiskAccess access, VirtualDiskOpenFlags flags);
 	// todo: VirtualDiskOpenParameters^
+
+	// Resize
+	//
+	// Synchronously resizes the virtual disk
+	void Resize(__int64 newsize);
+	void Resize(__int64 newsize, VirtualDiskResizeFlags flags);
+
+	// ResizeAsync
+	//
+	// Asynchronously resizes the virtual disk
+	//Task^ ResizeAsync(__int64 newsize);
+	//Task^ ResizeAsync(__int64 newsize, VirtualDiskResizeFlags flags);
+	//Task^ ResizeAsync(__int64 newsize, CancellationToken cancellation);
+	//Task^ ResizeAsync(__int64 newsize, VirtualDiskResizeFlags flags, CancellationToken cancellation);
+	//Task^ ResizeAsync(__int64 newsize, IProgress<int>^ progress);
+	//Task^ ResizeAsync(__int64 newsize, VirtualDiskResizeFlags flags, IProgress<int>^ progress);
+	//Task^ ResizeAsync(__int64 newsize, CancellationToken cancellation, IProgress<int>^ progress);
+	Task^ ResizeAsync(__int64 newsize, VirtualDiskResizeFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
 
 	//-----------------------------------------------------------------------
 	// Properties
@@ -152,101 +194,6 @@ public:
 		unsigned __int64 get(void);
 	}
 
-	//// OLD OLD OLD
-	////
-	//static VirtualDiskAsyncStatus AsyncOperationStatus(IAsyncResult^ asyncResult);
-	//
-	////-----------------------------------------------------------------------
-	//// ASYNCHRONOUS VIRTUAL DISK API FUNCTIONS
-	////-----------------------------------------------------------------------
-
-	//// BeginAttach / EndAttach
-	////
-	//// Attaches the virtual disk
-	//IAsyncResult^ BeginAttach(void) { return BeginAttach(gcnew VirtualDiskAttachParameters(), nullptr); }
-	//IAsyncResult^ BeginAttach(VirtualDiskAttachParameters^ attachParams) { return BeginAttach(attachParams, nullptr); }
-	//IAsyncResult^ BeginAttach(VirtualDiskAttachParameters^ attachParams, FileSecurity^ securityDescriptor);
-	//VirtualDiskAsyncStatus EndAttach(IAsyncResult^ asyncResult) { return CompleteAsyncOperation(asyncResult); }
-
-	//// BeginCreate / EndCreate
-	////
-	//// Creates a new virtual disk
-	//static IAsyncResult^ BeginCreate(String^ path, __int64 maximumSize) { return BeginCreate(gcnew VirtualDiskCreateParameters(path, VirtualDiskType::Unknown, maximumSize), nullptr); }
-	//static IAsyncResult^ BeginCreate(String^ path, VirtualDiskType type, __int64 maximumSize) { return BeginCreate(gcnew VirtualDiskCreateParameters(path, type, maximumSize), nullptr); }
-	//static IAsyncResult^ BeginCreate(String^ path, __int64 maximumSize, FileSecurity^ securityDescriptor) { return BeginCreate(gcnew VirtualDiskCreateParameters(path, VirtualDiskType::Unknown, maximumSize), securityDescriptor); }
-	//static IAsyncResult^ BeginCreate(String^ path, VirtualDiskType type, __int64 maximumSize, FileSecurity^ securityDescriptor) { return BeginCreate(gcnew VirtualDiskCreateParameters(path, type, maximumSize), securityDescriptor); }
-	//static IAsyncResult^ BeginCreate(VirtualDiskCreateParameters^ createParams) { return BeginCreate(createParams, nullptr); }
-	//static IAsyncResult^ BeginCreate(VirtualDiskCreateParameters^ createParams, FileSecurity^ securityDescriptor);
-	//static VirtualDisk^ EndCreate(IAsyncResult^ asyncResult);
-
-	//// testing
-	//static IAsyncResult^ BeginCreate2(String^ path);
-	//static VirtualDisk^ EndCreate2(IAsyncResult^ asyncresult);
-
-	//static VirtualDisk^ Create2(String^ path);
-	//
-	//[HostProtectionAttribute(SecurityAction::LinkDemand, ExternalThreading = true)]
-	//static Task<VirtualDisk^>^ CreateAsync(String^ path);
-
-	//// BeginExpand / EndExpand
-	////
-	//// Expands the virtual disk to the specified size
-	//IAsyncResult^ BeginExpand(__int64 newSize);
-	//VirtualDiskAsyncStatus EndExpand(IAsyncResult^ asyncResult) { return CompleteAsyncOperation(asyncResult); }
-	//
-	//// BeginResize / EndResize
-	////
-	//// Resizes the virtual disk to the specified size
-	//IAsyncResult^ BeginResize(__int64 newSize) { return BeginResize(newSize, false); }
-	//IAsyncResult^ BeginResize(__int64 newSize, bool allowTruncate);
-	//VirtualDiskAsyncStatus EndResize(IAsyncResult^ asyncResult) { return CompleteAsyncOperation(asyncResult); }
-
-	////-----------------------------------------------------------------------
-	//// SYNCHRONOUS VIRTUAL DISK API FUNCTIONS
-	////-----------------------------------------------------------------------
-
-	//// Attach
-	////
-	//// Attaches the virtual disk
-	//// NOTE: REQUIRES ELEVATED PRIVILEGES
-	//void Attach(void) { Attach(gcnew VirtualDiskAttachParameters(), nullptr); }
-	//void Attach(VirtualDiskAttachParameters^ attachParams) { Attach(attachParams, nullptr); }
-	//void Attach(VirtualDiskAttachParameters^ attachParams, FileSecurity^ securityDescriptor);
-
-	//// Create
-	////
-	//// Creates a new virtual disk
-	//static VirtualDisk^ Create(String^ path, __int64 maximumSize) { return Create(gcnew VirtualDiskCreateParameters(path, VirtualDiskType::Unknown, maximumSize), nullptr); }
-	//static VirtualDisk^ Create(String^ path, VirtualDiskType type, __int64 maximumSize) { return Create(gcnew VirtualDiskCreateParameters(path, type, maximumSize), nullptr); }
-	//static VirtualDisk^ Create(String^ path, __int64 maximumSize, FileSecurity^ securityDescriptor) { return Create(gcnew VirtualDiskCreateParameters(path, VirtualDiskType::Unknown, maximumSize), securityDescriptor); }
-	//static VirtualDisk^ Create(String^ path, VirtualDiskType type, __int64 maximumSize, FileSecurity^ securityDescriptor) { return Create(gcnew VirtualDiskCreateParameters(path, type, maximumSize), securityDescriptor); }
-	//static VirtualDisk^ Create(VirtualDiskCreateParameters^ createParams) { return Create(createParams, nullptr); }
-	//static VirtualDisk^ Create(VirtualDiskCreateParameters^ createParams, FileSecurity^ securityDescriptor);
-
-	//// Detach
-	////
-	//// Detaches the virtual disk
-	//// NOTE: REQUIRES ELEVATED PRIVILEGES
-	//void Detach(void);
-
-	//// Expand
-	////
-	//// Expands the virtual disk to the specified size
-	//void Expand(__int64 newSize);
-	//
-	//// Open
-	////
-	//// Opens an existing virtual disk
-	//static VirtualDisk^ Open(String^ path) { return Open(gcnew VirtualDiskOpenParameters(path, VirtualDiskType::Unknown)); }
-	//static VirtualDisk^ Open(String^ path, VirtualDiskType type) { return Open(gcnew VirtualDiskOpenParameters(path, type)); }
-	//static VirtualDisk^ Open(VirtualDiskOpenParameters^ openParams);
-
-	//// Resize
-	////
-	//// Resizes the virtual disk to the specified size
-	//void Resize(__int64 newSize) { Resize(newSize, false); }
-	//void Resize(__int64 newSize, bool allowTruncate);
-
 private:
 
 	// Instance Constructor
@@ -264,6 +211,26 @@ private:
 	//
 	// Begins an asynchronous compact operation
 	IAsyncResult^ BeginCompact(VirtualDiskCompactFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+
+	// BeginCreate (static)
+	//
+	// Begins an asynchronous create operation
+	static IAsyncResult^ BeginCreate(String^ path, CancellationToken cancellation, IProgress<int>^ progress);
+
+	// BeginExpand
+	//
+	// Begins an asynchronous expand operation
+	IAsyncResult^ BeginExpand(__int64 newsize, VirtualDiskExpandFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+
+	// BeginResize
+	//
+	// Begins an asynchronous resize operation
+	IAsyncResult^ BeginResize(__int64 newsize, VirtualDiskResizeFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+
+	// EndCreate (static)
+	//
+	// Completes an asynchronous create operation
+	static VirtualDisk^ EndCreate(IAsyncResult^ asyncresult);
 
 	//-----------------------------------------------------------------------
 	// Member Variables
