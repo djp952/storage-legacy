@@ -37,7 +37,10 @@ BEGIN_ROOT_NAMESPACE(zuki::storage)
 // FORWARD DECLARATIONS
 //
 enum class	VirtualDiskAccess;
+enum class	VirtualDiskAttachFlags;
 enum class	VirtualDiskCompactFlags;
+enum class	VirtualDiskCreateFlags;
+enum class	VirtualDiskDetachFlags;
 enum class	VirtualDiskExpandFlags;
 enum class	VirtualDiskOpenFlags;
 enum class	VirtualDiskResizeFlags;
@@ -47,7 +50,7 @@ value class	VirtualDiskType;
 //---------------------------------------------------------------------------
 // Class VirtualDisk
 //
-// TODO
+// Managed wrapper class around the Windows Virtual Disk API
 //---------------------------------------------------------------------------
 
 public ref class VirtualDisk sealed
@@ -56,6 +59,17 @@ public:
 
 	//-----------------------------------------------------------------------
 	// Member Functions
+
+	// Attach
+	//
+	// Synchronously attaches the virtual disk
+	void Attach(void);
+	void Attach(VirtualDiskAttachFlags flags);
+
+	// AttachAsync
+	//
+	// Asynchronously attaches the virtual disk
+	Task^ AttachAsync(VirtualDiskAttachFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
 
 	// Compact
 	//
@@ -79,11 +93,20 @@ public:
 	//
 	// Synchronously creates a new virtual disk
 	static VirtualDisk^ Create(String^ path);
+	static VirtualDisk^ Create(String^ path, VirtualDiskCreateFlags flags);
 
 	// CreateAsync
 	//
 	// Asynchronously creates a new virtual disk
-	static Task<VirtualDisk^>^ CreateAsync(String^ path, CancellationToken cancellation, IProgress<int>^ progress);
+	static Task<VirtualDisk^>^ CreateAsync(String^ path, VirtualDiskCreateFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+
+	// Detach
+	//
+	// Detaches the virtual disk
+	void Detach(void);
+	void Detach(unsigned int providerflags);
+	void Detach(VirtualDiskDetachFlags flags);
+	void Detach(VirtualDiskDetachFlags flags, unsigned int providerflags);
 
 	// ExpandAsync
 	//
@@ -106,7 +129,6 @@ public:
 	static VirtualDisk^ Open(VirtualDiskType type, String^ path);
 	static VirtualDisk^ Open(VirtualDiskType type, String^ path, VirtualDiskAccess access);
 	static VirtualDisk^ Open(VirtualDiskType type, String^ path, VirtualDiskAccess access, VirtualDiskOpenFlags flags);
-	// todo: VirtualDiskOpenParameters^
 
 	// Resize
 	//
@@ -207,6 +229,11 @@ private:
 	//-----------------------------------------------------------------------
 	// Private Member Functions
 
+	// BeginAttach
+	//
+	// Begins an asynchronous attach operation
+	IAsyncResult^ BeginAttach(VirtualDiskAttachFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+
 	// BeginCompact
 	//
 	// Begins an asynchronous compact operation
@@ -215,7 +242,7 @@ private:
 	// BeginCreate (static)
 	//
 	// Begins an asynchronous create operation
-	static IAsyncResult^ BeginCreate(String^ path, CancellationToken cancellation, IProgress<int>^ progress);
+	static IAsyncResult^ BeginCreate(String^ path, VirtualDiskCreateFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
 
 	// BeginExpand
 	//

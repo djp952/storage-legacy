@@ -155,25 +155,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GuidUtil.h" />
     <ClInclude Include="VirtualDiskAccess.h" />
     <ClInclude Include="VirtualDiskAsyncResult.h" />
+    <ClInclude Include="VirtualDiskAttachFlags.h" />
     <ClInclude Include="VirtualDiskAttachParameters.h" />
     <ClInclude Include="VirtualDiskCompactFlags.h" />
-    <ClInclude Include="VirtualDiskCreateParameters2.h" />
+    <ClInclude Include="VirtualDiskCreateFlags.h" />
+    <ClInclude Include="VirtualDiskDetachFlags.h" />
     <ClInclude Include="VirtualDiskExpandFlags.h" />
+    <ClInclude Include="VirtualDiskMergeFlags.h" />
+    <ClInclude Include="VirtualDiskMirrorFlags.h" />
     <ClInclude Include="VirtualDiskOpenFlags.h" />
-    <ClInclude Include="VirtualDiskParentDiskParameters.h" />
-    <ClInclude Include="VirtualDiskOpenParameters.h" />
     <ClInclude Include="VirtualDiskResizeFlags.h" />
     <ClInclude Include="VirtualDiskSafeHandle.h" />
-    <ClInclude Include="VirtualDiskSourceDiskParameters.h" />
-    <ClInclude Include="VirtualDiskUtil.h" />
-    <ClInclude Include="__Enumerations.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="VirtualDisk.h" />
-    <ClInclude Include="VirtualDiskCreateParameters.h" />
     <ClInclude Include="VirtualDiskType.h" />
     <ClInclude Include="VirtualDiskAsyncStatus.h" />
+    <ClInclude Include="zeroinit.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
@@ -183,10 +183,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="GuidUtil.cpp" />
     <ClCompile Include="tmp\version.cpp" />
     <ClCompile Include="VirtualDiskAsyncResult.cpp" />
-    <ClCompile Include="VirtualDiskAttachParameters.cpp" />
-    <ClCompile Include="VirtualDiskOpenParameters.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -194,9 +193,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="VirtualDiskSafeHandle.cpp" />
-    <ClCompile Include="VirtualDiskUtil.cpp" />
     <ClCompile Include="VirtualDisk.cpp" />
-    <ClCompile Include="VirtualDiskCreateParameters.cpp" />
     <ClCompile Include="VirtualDiskType.cpp" />
   </ItemGroup>
   <ItemGroup>

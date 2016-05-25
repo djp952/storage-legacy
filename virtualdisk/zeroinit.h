@@ -20,6 +20,21 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "stdafx.h"
+#ifndef __ZEROINIT_H_
+#define __ZEROINIT_H_
+#pragma once
 
 //---------------------------------------------------------------------------
+// zero_init
+//
+// Helper template used to declare a zero-initialized structure
+
+template <typename _type>
+struct zero_init : public _type
+{
+	zero_init() { memset(this, 0, sizeof(_type)); }
+};
+
+//---------------------------------------------------------------------------
+
+#endif	// __ZEROINIT_H_

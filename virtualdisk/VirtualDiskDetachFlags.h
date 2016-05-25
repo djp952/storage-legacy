@@ -20,6 +20,32 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "stdafx.h"
+#ifndef __VIRTUALDISKDETACHFLAGS_H_
+#define __VIRTUALDISKDETACHFLAGS_H_
+#pragma once
+
+#pragma warning(push, 4)				// Enable maximum compiler warnings
+
+using namespace System;
+
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
+// Enum VirtualDiskDetachFlags
+//
+// Provides flag that control the behavior of a detach operation
+//---------------------------------------------------------------------------
+
+[FlagsAttribute]
+public enum class VirtualDiskDetachFlags
+{
+    None		= DETACH_VIRTUAL_DISK_FLAG::DETACH_VIRTUAL_DISK_FLAG_NONE,
+};
+
+//---------------------------------------------------------------------------
+
+END_ROOT_NAMESPACE(zuki::storage)
+
+#pragma warning(pop)
+
+#endif	// __VIRTUALDISKDETACHFLAGS_H_

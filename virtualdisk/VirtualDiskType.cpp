@@ -23,11 +23,23 @@
 #include "stdafx.h"
 #include "VirtualDiskType.h"
 
-#include "VirtualDiskUtil.h"
+#include "GuidUtil.h"
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
+
+//---------------------------------------------------------------------------
+// VirtualDiskType Constructor
+//
+// Arguments:
+//
+//	deviceid	- Virtual disk device identifier
+//	vendorid	- Virtual disk vendor identifier
+
+VirtualDiskType::VirtualDiskType(unsigned int deviceid, Guid vendorid) : DeviceId(deviceid), VendorId(vendorid)
+{
+}
 
 //---------------------------------------------------------------------------
 // VirtualDiskType Constructor (internal)
@@ -37,8 +49,7 @@ BEGIN_ROOT_NAMESPACE(zuki::storage)
 //	deviceid	- Virtual disk device identifier
 //	vendorid	- Virtual disk vendor identifier
 
-VirtualDiskType::VirtualDiskType(ULONG deviceid, const GUID& vendorid) : m_deviceid(deviceid), 
-	m_vendorid(VirtualDiskUtil::UUIDToSysGuid(vendorid))
+VirtualDiskType::VirtualDiskType(ULONG deviceid, const GUID& vendorid) : DeviceId(deviceid), VendorId(GuidUtil::UUIDToSysGuid(vendorid))
 {
 }
 
@@ -49,8 +60,7 @@ VirtualDiskType::VirtualDiskType(ULONG deviceid, const GUID& vendorid) : m_devic
 //
 //	type		- VIRTUAL_STORAGE_TYPE instance reference
 
-VirtualDiskType::VirtualDiskType(const VIRTUAL_STORAGE_TYPE& type) : m_deviceid(type.DeviceId), 
-	m_vendorid(VirtualDiskUtil::UUIDToSysGuid(type.VendorId))
+VirtualDiskType::VirtualDiskType(const VIRTUAL_STORAGE_TYPE& type) : DeviceId(type.DeviceId), VendorId(GuidUtil::UUIDToSysGuid(type.VendorId))
 {
 }
 
@@ -59,7 +69,7 @@ VirtualDiskType::VirtualDiskType(const VIRTUAL_STORAGE_TYPE& type) : m_deviceid(
 
 bool VirtualDiskType::operator==(VirtualDiskType lhs, VirtualDiskType rhs)
 {
-	return ((lhs.m_deviceid == rhs.m_deviceid) && (lhs.m_vendorid == rhs.m_vendorid));
+	return ((lhs.DeviceId == rhs.DeviceId) && (lhs.VendorId == rhs.VendorId));
 }
 
 //---------------------------------------------------------------------------
@@ -67,7 +77,7 @@ bool VirtualDiskType::operator==(VirtualDiskType lhs, VirtualDiskType rhs)
 
 bool VirtualDiskType::operator!=(VirtualDiskType lhs, VirtualDiskType rhs)
 {
-	return ((lhs.m_deviceid != rhs.m_deviceid) || (lhs.m_vendorid != rhs.m_vendorid));
+	return ((lhs.DeviceId != rhs.DeviceId) || (lhs.VendorId != rhs.VendorId));
 }
 
 //---------------------------------------------------------------------------
@@ -115,7 +125,8 @@ bool VirtualDiskType::Equals(Object^ rhs)
 
 int VirtualDiskType::GetHashCode(void)
 {
-	return m_deviceid.GetHashCode() ^ m_vendorid.GetHashCode();
+	// VendorId is initonly and has to be copied for this operation (C4395)
+	return DeviceId.GetHashCode() ^ Guid(VendorId).GetHashCode();
 }
 
 //---------------------------------------------------------------------------
@@ -129,11 +140,12 @@ int VirtualDiskType::GetHashCode(void)
 
 String^ VirtualDiskType::ToString(void)
 {
-	switch(m_deviceid) {
+	switch(DeviceId) {
 
-		case VIRTUAL_STORAGE_TYPE_DEVICE_ISO:	return gcnew String("ISO");
-		case VIRTUAL_STORAGE_TYPE_DEVICE_VHD:	return gcnew String("VHD");
-		case VIRTUAL_STORAGE_TYPE_DEVICE_VHDX:	return gcnew String("VHDX");
+		case VIRTUAL_STORAGE_TYPE_DEVICE_ISO:		return gcnew String("ISO");
+		case VIRTUAL_STORAGE_TYPE_DEVICE_VHD:		return gcnew String("VHD");
+		case VIRTUAL_STORAGE_TYPE_DEVICE_VHDX:		return gcnew String("VHDX");
+		case VIRTUAL_STORAGE_TYPE_DEVICE_VHDSET:	return gcnew String("VHDSet");
 
 		default: return gcnew String("Unknown");
 	}
@@ -152,8 +164,8 @@ void VirtualDiskType::ToVIRTUAL_STORAGE_TYPE(PVIRTUAL_STORAGE_TYPE type)
 {
 	if(type == __nullptr) throw gcnew ArgumentNullException("type");
 
-	type->DeviceId = static_cast<ULONG>(m_deviceid);
-	type->VendorId = VirtualDiskUtil::SysGuidToUUID(m_vendorid);
+	type->DeviceId = static_cast<ULONG>(DeviceId);
+	type->VendorId = GuidUtil::SysGuidToUUID(VendorId);
 }
 
 //---------------------------------------------------------------------------

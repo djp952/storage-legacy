@@ -20,83 +20,27 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef __VIRTUALDISKSOURCEDISKPARAMETERS_H_
-#define __VIRTUALDISKSOURCEDISKPARAMETERS_H_
+#ifndef __VIRTUALDISKMIRRORFLAGS_H_
+#define __VIRTUALDISKMIRRORFLAGS_H_
 #pragma once
-
-#include "VirtualDiskType.h"
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
 using namespace System;
-using namespace System::IO;
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
-// Class VirtualDiskSourceDiskParameters
+// Enum VirtualDiskMirrorFlags
 //
-// Contains information about a source disk when creating a new virtual disk
+// Provides flag that control the behavior of a mirror operation
 //---------------------------------------------------------------------------
 
-public ref class VirtualDiskSourceDiskParameters sealed
+[FlagsAttribute]
+public enum class VirtualDiskMirrorFlags
 {
-public:
-
-	//-----------------------------------------------------------------------
-	// Properties
-
-	// Path
-	//
-	// Gets/sets the fully qualified path to the source disk object
-	property String^ Path
-	{
-		String^ get(void) { return m_path; }
-		void set(String^ value) 
-		{ 
-			if(!String::IsNullOrEmpty(value) && !System::IO::Path::IsPathRooted(value)) 
-				throw gcnew ArgumentException("path must be fully qualified", "value");
-			m_path = value; 
-		}
-	}
-
-	// PreventWrites
-	//
-	// Flag that indicates the source disk should be locked read-only
-	// while the new disk is being created
-	property bool PreventWrites
-	{
-		bool get(void) { return m_preventWrites; }
-		void set(bool value) { m_preventWrites = value; }
-	}
-
-	// Type
-	//
-	// Gets/sets the virtual disk type of the source disk object
-	property VirtualDiskType Type
-	{
-		VirtualDiskType get(void) { return m_storageType; }
-		void set(VirtualDiskType value) { m_storageType = value; }
-	}
-
-internal:
-
-	// INTERNAL CONSTRUCTOR
-	VirtualDiskSourceDiskParameters() 
-	{
-		m_path = String::Empty;
-		m_storageType = VirtualDiskType::Unknown;
-		m_preventWrites = true;
-	}
-
-private:
-
-	//-----------------------------------------------------------------------
-	// Member Variables
-
-	String^						m_path;
-	VirtualDiskType		m_storageType;
-	bool						m_preventWrites;
+    None			= MIRROR_VIRTUAL_DISK_FLAG::MIRROR_VIRTUAL_DISK_FLAG_NONE,
+    ExistingFile	= MIRROR_VIRTUAL_DISK_FLAG::MIRROR_VIRTUAL_DISK_FLAG_EXISTING_FILE,
 };
 
 //---------------------------------------------------------------------------
@@ -105,4 +49,4 @@ END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 
-#endif	// __VIRTUALDISKSOURCEDISKPARAMETERS_H_
+#endif	// __VIRTUALDISKMIRRORFLAGS_H_

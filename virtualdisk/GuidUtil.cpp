@@ -20,41 +20,49 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef __VIRTUALDISKUTIL_H_
-#define __VIRTUALDISKUTIL_H_
-#pragma once
-
-#pragma warning(push, 4)				// Enable maximum compiler warnings
+#include "stdafx.h"
+#include "GuidUtil.h"
 
 using namespace System;
-using namespace System::Runtime::InteropServices;
+
+#pragma warning(push, 4)			// Enable maximum compiler warnings
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
-// Class VirtualDiskUtil (internal)
+// GuidUtil::SysGuidToUUID
 //
-// Collection of useful static functions
-//---------------------------------------------------------------------------
+// Converts a managed System::Guid structure into a standard UUID structure
+//
+// Arguments:
+//
+//	guid		- The managed System::Guid to be converted
 
-ref class VirtualDiskUtil
+UUID GuidUtil::SysGuidToUUID(Guid guid)
 {
-public:
+	array<Byte>^ guidData = guid.ToByteArray();
+	pin_ptr<uint8_t> data = &(guidData[0]);
+	return *reinterpret_cast<UUID*>(data);
+}
 
-	//-----------------------------------------------------------------------
-	// Member Functions
+//---------------------------------------------------------------------------
+// GuidUtil::UUIDToSysGuid
+//
+// Converts an unmanaged UUID structure into a managed System::Guid structure
+//
+// Arguments:
+//
+//	guid		- The unmanaged UUID structure to be converted
 
-	static PWSTR	FreePWSTR(PWSTR pwstr);
-	static PWSTR	FreePWSTR(PCWSTR pwstr) { return FreePWSTR(const_cast<PWSTR>(pwstr)); }
-	static PWSTR	StringToPWSTR(String^ string);
-	static UUID		SysGuidToUUID(Guid guid);
-	static Guid		UUIDToSysGuid(const UUID& guid);
-};
+Guid GuidUtil::UUIDToSysGuid(const UUID& guid)
+{
+   return Guid(guid.Data1, guid.Data2, guid.Data3, guid.Data4[0],
+	   guid.Data4[1], guid.Data4[2], guid.Data4[3], guid.Data4[4], guid.Data4[5],
+	   guid.Data4[6], guid.Data4[7]);
+}
 
 //---------------------------------------------------------------------------
 
 END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
-
-#endif	// __VIRTUALDISKUTIL_H_

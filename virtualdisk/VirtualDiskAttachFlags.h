@@ -20,84 +20,34 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef __VIRTUALDISKPARENTDISKPARAMETERS_H_
-#define __VIRTUALDISKPARENTDISKPARAMETERS_H_
+#ifndef __VIRTUALDISKATTACHFLAGS_H_
+#define __VIRTUALDISKATTACHFLAGS_H_
 #pragma once
-
-#include "VirtualDiskType.h"
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
 using namespace System;
-using namespace System::IO;
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
-// Class VirtualDiskParentDiskParameters
+// Enum VirtualDiskAttachFlags
 //
-// Contains information about a parent disk when creating a new differencing
-// virtual disk object
+// Provides flag that control the behavior of an attach operation
 //---------------------------------------------------------------------------
 
-public ref class VirtualDiskParentDiskParameters sealed
+[FlagsAttribute]
+public enum class VirtualDiskAttachFlags
 {
-public:
+    None					= ATTACH_VIRTUAL_DISK_FLAG::ATTACH_VIRTUAL_DISK_FLAG_NONE,
+    ReadOnly				= ATTACH_VIRTUAL_DISK_FLAG::ATTACH_VIRTUAL_DISK_FLAG_READ_ONLY,
+    NoDriveLetter			= ATTACH_VIRTUAL_DISK_FLAG::ATTACH_VIRTUAL_DISK_FLAG_NO_DRIVE_LETTER,
+    PermanentLifetime		= ATTACH_VIRTUAL_DISK_FLAG::ATTACH_VIRTUAL_DISK_FLAG_PERMANENT_LIFETIME,
+    NoSecurityDescriptor	= ATTACH_VIRTUAL_DISK_FLAG::ATTACH_VIRTUAL_DISK_FLAG_NO_SECURITY_DESCRIPTOR,
 
-	//-----------------------------------------------------------------------
-	// Properties
-
-	// CopyMetadata
+	// The following constants are documented as reserved
 	//
-	// Flag that indicates the metadata from the parent disk should be copied
-	// when creating the new differencing disk
-	property bool CopyMetadata
-	{
-		bool get(void) { return m_copyMetadata; }
-		void set(bool value) { m_copyMetadata = value; }
-	}
-
-	// Path
-	//
-	// Gets/sets the fully qualified path to the parent disk object
-	property String^ Path
-	{
-		String^ get(void) { return m_path; }
-		void set(String^ value) 
-		{ 
-			if(!String::IsNullOrEmpty(value) && !System::IO::Path::IsPathRooted(value)) 
-				throw gcnew ArgumentException("path must be fully qualified", "value");
-			m_path = value; 
-		}
-	}
-
-	// Type
-	//
-	// Gets/sets the virtual disk type of the parent disk object
-	property VirtualDiskType Type
-	{
-		VirtualDiskType get(void) { return m_storageType; }
-		void set(VirtualDiskType value) { m_storageType = value; }
-	}
-
-internal:
-
-	// INTERNAL CONSTRUCTOR
-	VirtualDiskParentDiskParameters() 
-	{
-		m_path = String::Empty;
-		m_storageType = VirtualDiskType::Unknown;
-		m_copyMetadata = true;
-	}
-
-private:
-
-	//-----------------------------------------------------------------------
-	// Member Variables
-
-	String^						m_path;
-	VirtualDiskType		m_storageType;
-	bool						m_copyMetadata;
+    // NoLocalHost				= ATTACH_VIRTUAL_DISK_FLAG::ATTACH_VIRTUAL_DISK_FLAG_NO_LOCAL_HOST,
 };
 
 //---------------------------------------------------------------------------
@@ -106,4 +56,4 @@ END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 
-#endif	// __VIRTUALDISKPARENTDISKPARAMETERS_H_
+#endif	// __VIRTUALDISKATTACHFLAGS_H_

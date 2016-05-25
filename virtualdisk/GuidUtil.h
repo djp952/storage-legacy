@@ -20,6 +20,38 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "stdafx.h"
+#ifndef __GUIDUTIL_H_
+#define __GUIDUTIL_H_
+#pragma once
+
+#pragma warning(push, 4)				// Enable maximum compiler warnings
+
+using namespace System;
+using namespace System::Runtime::InteropServices;
+
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
+// Class GuidUtil (internal)
+//
+// System::Guid helper functions
+//---------------------------------------------------------------------------
+
+ref class GuidUtil abstract sealed
+{
+public:
+
+	//-----------------------------------------------------------------------
+	// Member Functions
+
+	static UUID		SysGuidToUUID(Guid guid);
+	static Guid		UUIDToSysGuid(const UUID& guid);
+};
+
+//---------------------------------------------------------------------------
+
+END_ROOT_NAMESPACE(zuki::storage)
+
+#pragma warning(pop)
+
+#endif	// __GUIDUTIL_H_

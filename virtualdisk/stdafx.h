@@ -60,25 +60,7 @@
 #include <windows.h>				// Include main Windows declarations
 #include <virtdisk.h>				// Include Virtual Disk declarations
 #include <stdint.h>					// Include standard integer declarations
-
-// todo: clean the rest of this up
 #include <vcclr.h>					// Include VC CLR extensions
-
-#pragma warning(disable:4091)
-#include <msclr\lock.h>				// Include lock class declarations
-#pragma warning(default:4091)
-
-template <typename _type>
-struct zero_init : public _type
-{
-	zero_init() { memset(this, 0, sizeof(_type)); }
-};
-
-//---------------------------------------------------------------------------
-// Pinned Pointer Types
-
-typedef pin_ptr<const wchar_t>		PinnedStringPtr;
-typedef pin_ptr<unsigned __int8>	PinnedBytePtr;
 
 //---------------------------------------------------------------------------
 

@@ -20,8 +20,8 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef __ENUMERATIONS_H_
-#define __ENUMERATIONS_H_
+#ifndef __VIRTUALDISKCREATEFLAGS_H_
+#define __VIRTUALDISKCREATEFLAGS_H_
 #pragma once
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
@@ -31,40 +31,21 @@ using namespace System;
 BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
-// Enum AttachFlags
+// Enum VirtualDiskCreateFlags
 //
-// Virtual Disk Attach Request Flags
-
-public enum struct AttachFlags
-{
-	// todo: fully qualify
-	None						= ATTACH_VIRTUAL_DISK_FLAG_NONE,
-	ReadOnly					= ATTACH_VIRTUAL_DISK_FLAG_READ_ONLY,
-	NoDriveLetter				= ATTACH_VIRTUAL_DISK_FLAG_NO_DRIVE_LETTER,
-	PermanentLifetime			= ATTACH_VIRTUAL_DISK_FLAG_PERMANENT_LIFETIME,
-	NoLocalHost					= ATTACH_VIRTUAL_DISK_FLAG_NO_LOCAL_HOST
-};
-
+// Provides flag that control the behavior of a create operation
 //---------------------------------------------------------------------------
-// Enum DependentDiskFlags
-//
-// Contains virtual hard disk (VHD) dependency information flags
 
-public enum struct DependentDiskFlags
+[FlagsAttribute]
+public enum class VirtualDiskCreateFlags
 {
-	// todo: fully qualify
-	None						= DEPENDENT_DISK_FLAG_NONE,
-	MultipleBackingFiles		= DEPENDENT_DISK_FLAG_MULT_BACKING_FILES,
-	FullyAllocated				= DEPENDENT_DISK_FLAG_FULLY_ALLOCATED,
-	ReadOnly					= DEPENDENT_DISK_FLAG_READ_ONLY,
-	Remote						= DEPENDENT_DISK_FLAG_REMOTE,
-	SystemVolume				= DEPENDENT_DISK_FLAG_SYSTEM_VOLUME,
-	SystemVolumeParent			= DEPENDENT_DISK_FLAG_SYSTEM_VOLUME_PARENT,
-	Removable					= DEPENDENT_DISK_FLAG_REMOVABLE,
-	NoDriveLetter				= DEPENDENT_DISK_FLAG_NO_DRIVE_LETTER,
-	Parent						= DEPENDENT_DISK_FLAG_PARENT,
-	NoHostDisk					= DEPENDENT_DISK_FLAG_NO_HOST_DISK,
-	PermanentLifetime			= DEPENDENT_DISK_FLAG_PERMANENT_LIFETIME
+    None								= CREATE_VIRTUAL_DISK_FLAG::CREATE_VIRTUAL_DISK_FLAG_NONE,
+    FullPhysicalAllocation				= CREATE_VIRTUAL_DISK_FLAG::CREATE_VIRTUAL_DISK_FLAG_FULL_PHYSICAL_ALLOCATION,
+    PreventWritesToSourceDisk			= CREATE_VIRTUAL_DISK_FLAG::CREATE_VIRTUAL_DISK_FLAG_PREVENT_WRITES_TO_SOURCE_DISK,
+    DoNotCopyMetadataFromParent			= CREATE_VIRTUAL_DISK_FLAG::CREATE_VIRTUAL_DISK_FLAG_DO_NOT_COPY_METADATA_FROM_PARENT,
+    CreateBackingStorage				= CREATE_VIRTUAL_DISK_FLAG::CREATE_VIRTUAL_DISK_FLAG_CREATE_BACKING_STORAGE,
+    UseChangeTrackingSourceLimit		= CREATE_VIRTUAL_DISK_FLAG::CREATE_VIRTUAL_DISK_FLAG_USE_CHANGE_TRACKING_SOURCE_LIMIT,
+    PreserveParentChangeTrackingState	= CREATE_VIRTUAL_DISK_FLAG::CREATE_VIRTUAL_DISK_FLAG_PRESERVE_PARENT_CHANGE_TRACKING_STATE,
 };
 
 //---------------------------------------------------------------------------
@@ -73,4 +54,4 @@ END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 
-#endif	// __ENUMERATIONS_H_
+#endif	// __VIRTUALDISKCREATEFLAGS_H_

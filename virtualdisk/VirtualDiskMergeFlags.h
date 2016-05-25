@@ -20,6 +20,32 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "stdafx.h"
+#ifndef __VIRTUALDISKMERGEFLAGS_H_
+#define __VIRTUALDISKMERGEFLAGS_H_
+#pragma once
+
+#pragma warning(push, 4)				// Enable maximum compiler warnings
+
+using namespace System;
+
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
+// Enum VirtualDiskMergeFlags
+//
+// Provides flag that control the behavior of a merge operation
+//---------------------------------------------------------------------------
+
+[FlagsAttribute]
+public enum class VirtualDiskMergeFlags
+{
+    None		= MERGE_VIRTUAL_DISK_FLAG::MERGE_VIRTUAL_DISK_FLAG_NONE,
+};
+
+//---------------------------------------------------------------------------
+
+END_ROOT_NAMESPACE(zuki::storage)
+
+#pragma warning(pop)
+
+#endif	// __VIRTUALDISKMERGEFLAGS_H_

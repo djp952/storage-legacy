@@ -40,8 +40,8 @@ ref class	VirtualDiskSafeHandle;
 //---------------------------------------------------------------------------
 // Class VirtualDiskAsyncResult (internal)
 //
-// IAsyncResult-based object used to manage the asynchronous calls to
-// virtual disk API functions
+// IAsyncResult-based object used to manage the asynchronous calls to virtual
+// disk API functions
 //---------------------------------------------------------------------------
 
 ref class VirtualDiskAsyncResult : IAsyncResult
@@ -50,7 +50,7 @@ public:
 
 	// Instance Constructor
 	//
-	VirtualDiskAsyncResult(VirtualDiskSafeHandle^ handle, WaitHandle^ waithandle, NativeOverlapped* overlapped,
+	VirtualDiskAsyncResult(VirtualDiskSafeHandle^ handle, ManualResetEvent^ waithandle, NativeOverlapped* overlapped,
 		CancellationToken cancellation, IProgress<int>^ progress);
 
 	//-----------------------------------------------------------------------
@@ -119,18 +119,19 @@ private:
 	// ProgressThread
 	//
 	// Thread entry point for progress reporting
-	void ProgressThread(Object^ state);
+	void ProgressThread(void);
 
 	//-----------------------------------------------------------------------
 	// Member Variables
 
 	VirtualDiskSafeHandle^			m_handle;			// Virtual disk safe handle
-	WaitHandle^						m_waithandle;		// Operation wait handle
+	ManualResetEvent^				m_waithandle;		// Operation wait handle
 	NativeOverlapped*				m_overlapped;		// Native OVERLAPPED data
 	bool							m_synchronous;		// Flag for synchronous completion
 	int								m_completed;		// Flag if operation completed
 	CancellationTokenRegistration	m_cancelreg;		// Cancellation token registration
 	IProgress<int>^					m_progress;			// Progress callback
+	Thread^							m_progressthread;	// Progress worker thread
 };
 
 //---------------------------------------------------------------------------

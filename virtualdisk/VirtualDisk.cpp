@@ -23,15 +23,19 @@
 #include "stdafx.h"
 #include "VirtualDisk.h"
 
+#include "zeroinit.h"
+#include "GuidUtil.h"
 #include "VirtualDiskAccess.h"
+#include "VirtualDiskAttachFlags.h"
 #include "VirtualDiskAsyncResult.h"
 #include "VirtualDiskCompactFlags.h"
+#include "VirtualDiskCreateFlags.h"
+#include "VirtualDiskDetachFlags.h"
 #include "VirtualDiskExpandFlags.h"
 #include "VirtualDiskOpenFlags.h"
 #include "VirtualDiskResizeFlags.h"
 #include "VirtualDiskSafeHandle.h"
 #include "VirtualDiskType.h"
-#include "VirtualDiskUtil.h"
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
@@ -58,6 +62,53 @@ VirtualDisk::~VirtualDisk()
 
 	delete m_handle;
 	m_disposed = true;
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::Attach
+//
+// Synchronously attaches the virtual disk
+//
+// Arguments:
+//
+//	NONE
+
+void VirtualDisk::Attach(void)
+{
+	CHECK_DISPOSED(m_disposed);
+	Attach(VirtualDiskAttachFlags::None);
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::Attach
+//
+// Synchronously attaches the virtual disk
+//
+// Arguments:
+//
+//	flags			- Flags to control the attach operation
+
+void VirtualDisk::Attach(VirtualDiskAttachFlags flags)
+{
+	CHECK_DISPOSED(m_disposed);
+	VirtualDiskAsyncResult::CompleteAsynchronously(BeginAttach(flags, CancellationToken::None, nullptr));
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::AttachAsync
+//
+// Asynchronously attaches the virtual disk
+//
+// Arguments:
+//
+//	flags			- Flags to control the attach operation
+//	cancellation	- Token to monitor for cancellation requests
+//	progress		- Optional IProgress<int> on which to report progress
+
+Task^ VirtualDisk::AttachAsync(VirtualDiskAttachFlags flags, CancellationToken cancellation, IProgress<int>^ progress)
+{
+	CHECK_DISPOSED(m_disposed);
+	return Task::Factory->FromAsync(BeginAttach(flags, cancellation, progress), gcnew Action<IAsyncResult^>(&VirtualDiskAsyncResult::CompleteAsynchronously));
 }
 
 //---------------------------------------------------------------------------
@@ -96,6 +147,40 @@ String^ VirtualDisk::AttachedDevicePath::get(void)
 }
 
 //-----------------------------------------------------------------------------
+// VirtualDisk::BeginAttach (private)
+//
+// Starts an asynchronous attach operation
+//
+// Arguments:
+//
+//	flags			- Attach operation flags
+//	cancellation	- CancellationToken for the asynchronous operation
+//	progress		- IProgress<int> on which to report operation progress
+
+IAsyncResult^ VirtualDisk::BeginAttach(VirtualDiskAttachFlags flags, CancellationToken cancellation, IProgress<int>^ progress)
+{
+	CHECK_DISPOSED(m_disposed);
+
+	zero_init<ATTACH_VIRTUAL_DISK_PARAMETERS> params;
+
+	// Create a new event-based NativeOverlapped structure (VirtualDiskAsyncResult will take ownership of these)
+	ManualResetEvent^ waithandle = gcnew ManualResetEvent(false);
+	NativeOverlapped* overlapped = Overlapped(0, 0, waithandle->SafeWaitHandle->DangerousGetHandle(), nullptr).Pack(nullptr, nullptr);
+
+	// Begin the asynchronous virtual disk operation 
+	DWORD result = AttachVirtualDisk(VirtualDiskSafeHandle::Reference(m_handle), __nullptr /*todo: Security descriptor */,
+		static_cast<ATTACH_VIRTUAL_DISK_FLAG>(flags), 0 /* todo: provider flags */, &params, reinterpret_cast<LPOVERLAPPED>(overlapped));
+
+	// Transfer ownership of all asynchronous resources to a VirtualDiskAsyncResult instance before checking the result
+	VirtualDiskAsyncResult^ asyncresult = gcnew VirtualDiskAsyncResult(m_handle, waithandle, overlapped, cancellation, progress);
+
+	// If the request to create the disk failed, complete the operation synchronously to clean everything up
+	if(result != ERROR_IO_PENDING) asyncresult->CompleteSynchronously(result);
+
+	return asyncresult;
+}
+
+//-----------------------------------------------------------------------------
 // VirtualDisk::BeginCompact (private)
 //
 // Starts an asynchronous compact operation
@@ -114,7 +199,7 @@ IAsyncResult^ VirtualDisk::BeginCompact(VirtualDiskCompactFlags flags, Cancellat
 	params.Version = COMPACT_VIRTUAL_DISK_VERSION_1;
 
 	// Create a new event-based NativeOverlapped structure (VirtualDiskAsyncResult will take ownership of these)
-	WaitHandle^ waithandle = gcnew ManualResetEvent(false);
+	ManualResetEvent^ waithandle = gcnew ManualResetEvent(false);
 	NativeOverlapped* overlapped = Overlapped(0, 0, waithandle->SafeWaitHandle->DangerousGetHandle(), nullptr).Pack(nullptr, nullptr);
 
 	// Begin the asynchronous virtual disk operation 
@@ -136,30 +221,35 @@ IAsyncResult^ VirtualDisk::BeginCompact(VirtualDiskCompactFlags flags, Cancellat
 //
 // Arguments:
 //
-//	TODO
+//	path			- Fully qualified path to the virtual disk file
+//	flags			- Flags to control the behavior of the disk creation
+//	cancellation	- Asynchronous operation cancellation token
+//	progress		- Optional IProgress<> on which to report operation progress
 
-IAsyncResult^ VirtualDisk::BeginCreate(String^ path, CancellationToken cancellation, IProgress<int>^ progress)
+IAsyncResult^ VirtualDisk::BeginCreate(String^ path, VirtualDiskCreateFlags flags, CancellationToken cancellation, IProgress<int>^ progress)
 {
 	if(Object::ReferenceEquals(path, nullptr)) throw gcnew ArgumentNullException("path");
 
+	// todo
 	zero_init<CREATE_VIRTUAL_DISK_PARAMETERS> params;
 	params.Version = CREATE_VIRTUAL_DISK_VERSION_1;
-	params.Version1.MaximumSize = 4194304;		// 4MB
+	params.Version1.MaximumSize = 4194304 * 400;		// 1600MB
 	params.Version1.SectorSizeInBytes = 512;
 
+	// todo
 	zero_init<VIRTUAL_STORAGE_TYPE> type;
 	type.DeviceId = VIRTUAL_STORAGE_TYPE_DEVICE_VHD;
 	type.VendorId = VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT;
 
 	// Create a new event-based NativeOverlapped structure (VirtualDiskAsyncResult will take ownership of these)
-	WaitHandle^ waithandle = gcnew ManualResetEvent(false);
+	ManualResetEvent^ waithandle = gcnew ManualResetEvent(false);
 	NativeOverlapped* overlapped = Overlapped(0, 0, waithandle->SafeWaitHandle->DangerousGetHandle(), nullptr).Pack(nullptr, nullptr);
 
 	pin_ptr<const wchar_t> pinpath = PtrToStringChars(path);		// Destination path
 	HANDLE handle = __nullptr;										// Virtual disk handle
 
 	// Begin the asynchronous virtual disk operation
-	DWORD result = CreateVirtualDisk(&type, pinpath, VIRTUAL_DISK_ACCESS_ALL, __nullptr, CREATE_VIRTUAL_DISK_FLAG_NONE,
+	DWORD result = CreateVirtualDisk(&type, pinpath, VIRTUAL_DISK_ACCESS_ALL, __nullptr, static_cast<CREATE_VIRTUAL_DISK_FLAG>(flags),
 		0, &params, reinterpret_cast<LPOVERLAPPED>(overlapped), &handle);
 
 	// Transfer ownership of all asynchronous resources to a VirtualDiskAsyncResult instance before checking the result
@@ -193,7 +283,7 @@ IAsyncResult^ VirtualDisk::BeginExpand(__int64 newsize, VirtualDiskExpandFlags f
 	params.Version1.NewSize = static_cast<ULONGLONG>(newsize);
 
 	// Create a new event-based NativeOverlapped structure (VirtualDiskAsyncResult will take ownership of these)
-	WaitHandle^ waithandle = gcnew ManualResetEvent(false);
+	ManualResetEvent^ waithandle = gcnew ManualResetEvent(false);
 	NativeOverlapped* overlapped = Overlapped(0, 0, waithandle->SafeWaitHandle->DangerousGetHandle(), nullptr).Pack(nullptr, nullptr);
 
 	// Begin the asynchronous virtual disk operation 
@@ -229,7 +319,7 @@ IAsyncResult^ VirtualDisk::BeginResize(__int64 newsize, VirtualDiskResizeFlags f
 	params.Version1.NewSize = static_cast<ULONGLONG>(newsize);
 
 	// Create a new event-based NativeOverlapped structure (VirtualDiskAsyncResult will take ownership of these)
-	WaitHandle^ waithandle = gcnew ManualResetEvent(false);
+	ManualResetEvent^ waithandle = gcnew ManualResetEvent(false);
 	NativeOverlapped* overlapped = Overlapped(0, 0, waithandle->SafeWaitHandle->DangerousGetHandle(), nullptr).Pack(nullptr, nullptr);
 
 	// Begin the asynchronous virtual disk operation 
@@ -321,11 +411,26 @@ Task^ VirtualDisk::CompactAsync(VirtualDiskCompactFlags flags, CancellationToken
 //
 // Arguments:
 //
-//	TODO
+//	path			- Fully qualified path to the virtual disk file
 
 VirtualDisk^ VirtualDisk::Create(String^ path)
 {
-	return EndCreate(BeginCreate(path, CancellationToken::None, nullptr));
+	return Create(path, VirtualDiskCreateFlags::None);
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::Create (static)
+//
+// Synchronously creates a virtual disk
+//
+// Arguments:
+//
+//	path			- Fully qualified path to the virtual disk file
+//	flags			- Flags to control the behavior of the disk creation
+
+VirtualDisk^ VirtualDisk::Create(String^ path, VirtualDiskCreateFlags flags)
+{
+	return EndCreate(BeginCreate(path, flags, CancellationToken::None, nullptr));
 }
 
 //---------------------------------------------------------------------------
@@ -335,11 +440,78 @@ VirtualDisk^ VirtualDisk::Create(String^ path)
 //
 // Arguments:
 //
-//	TODO
+//	path			- Fully qualified path to the virtual disk file
+//	flags			- Flags to control the behavior of the disk creation
+//	cancellation	- Asynchronous operation cancellation token
+//	progress		- Optional IProgress<> on which to report operation progress
 
-Task<VirtualDisk^>^ VirtualDisk::CreateAsync(String^ path, CancellationToken cancellation, IProgress<int>^ progress)
+Task<VirtualDisk^>^ VirtualDisk::CreateAsync(String^ path, VirtualDiskCreateFlags flags, CancellationToken cancellation, IProgress<int>^ progress)
 {
-	return Task<VirtualDisk^>::Factory->FromAsync(BeginCreate(path, cancellation, progress), gcnew Func<IAsyncResult^, VirtualDisk^>(&EndCreate));
+	return Task<VirtualDisk^>::Factory->FromAsync(BeginCreate(path, flags, cancellation, progress), gcnew Func<IAsyncResult^, VirtualDisk^>(&EndCreate));
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::Detach
+//
+// Detaches the virtual disk
+//
+// Arguments:
+//
+//	NONE
+
+void VirtualDisk::Detach(void)
+{
+	CHECK_DISPOSED(m_disposed);
+	Detach(VirtualDiskDetachFlags::None, 0U);
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::Detach
+//
+// Detaches the virtual disk
+//
+// Arguments:
+//
+//	providerflags		- Provider-specific detach operation flags
+
+void VirtualDisk::Detach(unsigned int providerflags)
+{
+	CHECK_DISPOSED(m_disposed);
+	Detach(VirtualDiskDetachFlags::None, providerflags);
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::Detach
+//
+// Detaches the virtual disk
+//
+// Arguments:
+//
+//	flags			- Flags to control the detach operation
+
+void VirtualDisk::Detach(VirtualDiskDetachFlags flags)
+{
+	CHECK_DISPOSED(m_disposed);
+	Detach(flags, 0U);
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::Detach
+//
+// Detaches the virtual disk
+//
+// Arguments:
+//
+//	flags			- Flags to control the detach operation
+//	providerflags	- Provider-specific detach operation flags
+
+void VirtualDisk::Detach(VirtualDiskDetachFlags flags, unsigned int providerflags)
+{
+	CHECK_DISPOSED(m_disposed);
+
+	// This method is not available asynchronously, it's always a synchronous operation
+	DWORD result = DetachVirtualDisk(VirtualDiskSafeHandle::Reference(m_handle), static_cast<DETACH_VIRTUAL_DISK_FLAG>(flags), providerflags);
+	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
 }
 
 //---------------------------------------------------------------------------
@@ -499,7 +671,6 @@ VirtualDisk^ VirtualDisk::Open(VirtualDiskType type, String^ path, VirtualDiskAc
 	type.ToVIRTUAL_STORAGE_TYPE(&storagetype);
 
 	// Attempt to open the virtual disk using the provided information
-	// todo: OPEN_PARAMETERS
 	DWORD result = OpenVirtualDisk(&storagetype, pinpath, static_cast<VIRTUAL_DISK_ACCESS_MASK>(access), static_cast<OPEN_VIRTUAL_DISK_FLAG>(flags), __nullptr, &handle);
 	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
 
@@ -644,7 +815,7 @@ Guid VirtualDisk::UniqueIdentifier::get(void)
 	DWORD result = GetVirtualDiskInformation(VirtualDiskSafeHandle::Reference(m_handle), &infolen, &info, &infoused);
 	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
 
-	return VirtualDiskUtil::UUIDToSysGuid(info.Identifier);
+	return GuidUtil::UUIDToSysGuid(info.Identifier);
 }
 
 //---------------------------------------------------------------------------
@@ -659,7 +830,7 @@ void VirtualDisk::UniqueIdentifier::set(Guid value)
 	// Initialize the SET_VIRTUAL_DISK_INFO structure for this operation
 	zero_init<SET_VIRTUAL_DISK_INFO> info;
 	info.Version = SET_VIRTUAL_DISK_INFO_IDENTIFIER;
-	info.UniqueIdentifier = VirtualDiskUtil::SysGuidToUUID(value);
+	info.UniqueIdentifier = GuidUtil::SysGuidToUUID(value);
 
 	// Attempt to set the specified virtual disk information
 	DWORD result = SetVirtualDiskInformation(VirtualDiskSafeHandle::Reference(m_handle), &info);

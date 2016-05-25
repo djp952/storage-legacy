@@ -39,7 +39,7 @@ BEGIN_ROOT_NAMESPACE(zuki::storage)
 [FlagsAttribute]
 public enum class VirtualDiskExpandFlags
 {
-	None				= EXPAND_VIRTUAL_DISK_FLAG::EXPAND_VIRTUAL_DISK_FLAG_NONE,
+	None			= EXPAND_VIRTUAL_DISK_FLAG::EXPAND_VIRTUAL_DISK_FLAG_NONE,
 };
 
 //---------------------------------------------------------------------------

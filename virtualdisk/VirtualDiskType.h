@@ -40,6 +40,10 @@ public value class VirtualDiskType sealed
 {
 public:
 
+	// Instance Constructor
+	//
+	VirtualDiskType(unsigned int deviceid, Guid vendorid);
+
 	//-----------------------------------------------------------------------
 	// Overloaded Operators
 
@@ -77,10 +81,21 @@ public:
 	//-----------------------------------------------------------------------
 	// Fields
 
+	// DeviceId
+	//
+	// The vendor-specific device identifier
+	initonly unsigned int DeviceId;
+	
+	// VendorId
+	//
+	// The vendor identifier
+	initonly Guid VendorId;
+
 	static initonly VirtualDiskType Unknown	= VirtualDiskType(VIRTUAL_STORAGE_TYPE_DEVICE_UNKNOWN, VIRTUAL_STORAGE_TYPE_VENDOR_UNKNOWN);
 	static initonly VirtualDiskType ISO		= VirtualDiskType(VIRTUAL_STORAGE_TYPE_DEVICE_ISO, VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT);
 	static initonly VirtualDiskType VHD		= VirtualDiskType(VIRTUAL_STORAGE_TYPE_DEVICE_VHD, VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT);
 	static initonly VirtualDiskType VHDX	= VirtualDiskType(VIRTUAL_STORAGE_TYPE_DEVICE_VHDX, VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT);
+	static initonly VirtualDiskType VHDSet	= VirtualDiskType(VIRTUAL_STORAGE_TYPE_DEVICE_VHDSET, VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT);
 
 internal:
 
@@ -95,14 +110,6 @@ internal:
 	// Converts the contained value into a VIRTUAL_STORAGE_TYPE
 	//
 	void ToVIRTUAL_STORAGE_TYPE(PVIRTUAL_STORAGE_TYPE type);
-
-private:
-
-	//-----------------------------------------------------------------------
-	// Member Variables
-	
-	unsigned int		m_deviceid;			// Storage type device id
-	Guid				m_vendorid;			// Storage type vendor id
 };
 
 //---------------------------------------------------------------------------
