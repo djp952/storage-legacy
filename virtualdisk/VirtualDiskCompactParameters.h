@@ -20,8 +20,8 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef __VIRTUALDISKEXPANDFLAGS_H_
-#define __VIRTUALDISKEXPANDFLAGS_H_
+#ifndef __VIRTUALDISKCOMPACTPARAMETERS_H_
+#define __VIRTUALDISKCOMPACTPARAMETERS_H_
 #pragma once
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
@@ -30,16 +30,30 @@ using namespace System;
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
 
-//---------------------------------------------------------------------------
-// Enum VirtualDiskExpandFlags
+// FORWARD DECLARATIONS
 //
-// Provides flag that control the behavior of an expand operation
+enum class VirtualDiskCompactFlags;
+
+//---------------------------------------------------------------------------
+// Class VirtualDiskCompactParameters
+//
+// Virtual disk compact operation parameters
 //---------------------------------------------------------------------------
 
-[FlagsAttribute]
-public enum class VirtualDiskExpandFlags
+public ref struct VirtualDiskCompactParameters sealed
 {
-	None		= EXPAND_VIRTUAL_DISK_FLAG::EXPAND_VIRTUAL_DISK_FLAG_NONE,
+	// Instance Constructors
+	//
+	VirtualDiskCompactParameters() {}
+	VirtualDiskCompactParameters(VirtualDiskCompactFlags flags) : Flags(flags) {}
+
+	//-----------------------------------------------------------------------
+	// Fields
+
+	// Flags
+	//
+	// Operation flags
+	VirtualDiskCompactFlags Flags = VirtualDiskCompactFlags::None;
 };
 
 //---------------------------------------------------------------------------
@@ -48,4 +62,4 @@ END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 
-#endif	// __VIRTUALDISKEXPANDFLAGS_H_
+#endif	// __VIRTUALDISKCOMPACTPARAMETERS_H_

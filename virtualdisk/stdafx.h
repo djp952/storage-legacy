@@ -61,6 +61,7 @@
 #include <virtdisk.h>				// Include Virtual Disk declarations
 #include <stdint.h>					// Include standard integer declarations
 #include <vcclr.h>					// Include VC CLR extensions
+#include <VersionHelpers.h>			// Include SDK version helpers
 
 //---------------------------------------------------------------------------
 

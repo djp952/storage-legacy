@@ -20,8 +20,8 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef __VIRTUALDISKEXPANDFLAGS_H_
-#define __VIRTUALDISKEXPANDFLAGS_H_
+#ifndef __VIRTUALDISKDETACHPARAMETERS_H_
+#define __VIRTUALDISKDETACHPARAMETERS_H_
 #pragma once
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
@@ -30,16 +30,35 @@ using namespace System;
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
 
-//---------------------------------------------------------------------------
-// Enum VirtualDiskExpandFlags
+// FORWARD DECLARATIONS
 //
-// Provides flag that control the behavior of an expand operation
+enum class VirtualDiskDetachFlags;
+
+//---------------------------------------------------------------------------
+// Class VirtualDiskDetachParameters
+//
+// Virtual disk detach operation parameters
 //---------------------------------------------------------------------------
 
-[FlagsAttribute]
-public enum class VirtualDiskExpandFlags
+public ref struct VirtualDiskDetachParameters sealed
 {
-	None		= EXPAND_VIRTUAL_DISK_FLAG::EXPAND_VIRTUAL_DISK_FLAG_NONE,
+	// Instance Constructors
+	//
+	VirtualDiskDetachParameters() {}
+	VirtualDiskDetachParameters(VirtualDiskDetachFlags flags) : Flags(flags) {}
+
+	//-----------------------------------------------------------------------
+	// Fields
+
+	// Flags
+	//
+	// Operation flags
+	VirtualDiskDetachFlags Flags = VirtualDiskDetachFlags::None;
+
+	// ProviderFlags
+	//
+	// Operation provider-specific flags
+	unsigned int ProviderFlags = 0U;
 };
 
 //---------------------------------------------------------------------------
@@ -48,4 +67,4 @@ END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 
-#endif	// __VIRTUALDISKEXPANDFLAGS_H_
+#endif	// __VIRTUALDISKDETACHPARAMETERS_H_

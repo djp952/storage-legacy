@@ -20,9 +20,11 @@
 // SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef __VIRTUALDISKEXPANDFLAGS_H_
-#define __VIRTUALDISKEXPANDFLAGS_H_
+#ifndef __VIRTUALDISKOPENPARAMETERS_H_
+#define __VIRTUALDISKOPENPARAMETERS_H_
 #pragma once
+
+#include "VirtualDiskType.h"
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
@@ -30,16 +32,68 @@ using namespace System;
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
 
-//---------------------------------------------------------------------------
-// Enum VirtualDiskExpandFlags
+// FORWARD DECLARATIONS
 //
-// Provides flag that control the behavior of an expand operation
+enum class	VirtualDiskAccess;
+enum class	VirtualDiskOpenFlags;
+
+//---------------------------------------------------------------------------
+// Class VirtualDiskOpenParameters
+//
+// Virtual disk open operation parameters
 //---------------------------------------------------------------------------
 
-[FlagsAttribute]
-public enum class VirtualDiskExpandFlags
+public ref struct VirtualDiskOpenParameters sealed
 {
-	None		= EXPAND_VIRTUAL_DISK_FLAG::EXPAND_VIRTUAL_DISK_FLAG_NONE,
+	// Instance Constructors
+	//
+	VirtualDiskOpenParameters() {}
+	VirtualDiskOpenParameters(String^ path) : Path(path) {}
+	VirtualDiskOpenParameters(String^ path, VirtualDiskAccess access) : Path(path), Access(access) {}
+	VirtualDiskOpenParameters(String^ path, VirtualDiskAccess access, VirtualDiskOpenFlags flags) : Path(path), Access(access), Flags(flags) {}
+
+	//-----------------------------------------------------------------------
+	// Fields
+
+	// Access
+	//
+	// Access mask to use to open the virtual disk
+	VirtualDiskAccess Access = VirtualDiskAccess::ReadWrite;
+
+	// Flags
+	//
+	// Operation flags
+	VirtualDiskOpenFlags Flags = VirtualDiskOpenFlags::None;
+
+	// InformationOnly
+	//
+	// Flag indicating that the operation is only for getting vdisk information
+	bool InformationOnly = false;
+
+	// Path
+	//
+	// Path to the virtual disk to be opened
+	String^ Path = String::Empty;
+
+	// ReadOnlyBackingStore
+	//
+	// Flag indicating if the backing store is to opened as read-only
+	bool ReadOnlyBackingStore = false;
+
+	// ResiliencyGuid
+	//
+	// Resiliency GUID to specify when opening files
+	Guid ResiliencyGuid = Guid::Empty;
+
+	// SnapshotId
+	//
+	// Snapshot identifier GUID
+	Guid SnapshotId = Guid::Empty;
+
+	// Type
+	//
+	// The virtual disk type
+	VirtualDiskType Type = VirtualDiskType::Unknown;
 };
 
 //---------------------------------------------------------------------------
@@ -48,4 +102,4 @@ END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 
-#endif	// __VIRTUALDISKEXPANDFLAGS_H_
+#endif	// __VIRTUALDISKOPENPARAMETERS_H_

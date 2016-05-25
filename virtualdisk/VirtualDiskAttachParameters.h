@@ -43,6 +43,11 @@ enum class VirtualDiskAttachFlags;
 
 public ref struct VirtualDiskAttachParameters sealed
 {
+	// Instance Constructors
+	//
+	VirtualDiskAttachParameters() {}
+	VirtualDiskAttachParameters(VirtualDiskAttachFlags flags) : Flags(flags) {}
+
 	//-----------------------------------------------------------------------
 	// Fields
 

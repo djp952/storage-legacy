@@ -40,11 +40,16 @@ enum class	VirtualDiskAccess;
 enum class	VirtualDiskAttachFlags;
 ref struct	VirtualDiskAttachParameters;
 enum class	VirtualDiskCompactFlags;
+ref struct	VirtualDiskCompactParameters;
 enum class	VirtualDiskCreateFlags;
 enum class	VirtualDiskDetachFlags;
+ref struct	VirtualDiskDetachParameters;
 enum class	VirtualDiskExpandFlags;
+ref struct	VirtualDiskExpandParameters;
 enum class	VirtualDiskOpenFlags;
+ref struct	VirtualDiskOpenParameters;
 enum class	VirtualDiskResizeFlags;
+ref struct	VirtualDiskResizeParameters;
 ref class	VirtualDiskSafeHandle;
 value class	VirtualDiskType;
 
@@ -80,6 +85,7 @@ public:
 	// Synchronously compacts the virtual disk
 	void Compact(void);
 	void Compact(VirtualDiskCompactFlags flags);
+	void Compact(VirtualDiskCompactParameters^ params);
 
 	// CompactAsync
 	//
@@ -91,7 +97,7 @@ public:
 	//Task^ CompactAsync(IProgress<int>^ progress);
 	//Task^ CompactAsync(VirtualDiskCompactFlags flags, IProgress<int>^ progress);
 	//Task^ CompactAsync(CancellationToken cancellation, IProgress<int>^ progress);
-	Task^ CompactAsync(VirtualDiskCompactFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+	Task^ CompactAsync(VirtualDiskCompactParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
 
 	// Create
 	//
@@ -108,9 +114,15 @@ public:
 	//
 	// Detaches the virtual disk
 	void Detach(void);
-	void Detach(unsigned int providerflags);
 	void Detach(VirtualDiskDetachFlags flags);
-	void Detach(VirtualDiskDetachFlags flags, unsigned int providerflags);
+	void Detach(VirtualDiskDetachParameters^ params);
+
+	// Expand
+	//
+	// Synchronously expands the virtual disk
+	void Expand(unsigned __int64 newsize);
+	void Expand(unsigned __int64 newsize, VirtualDiskExpandFlags flags);
+	void Expand(VirtualDiskExpandParameters^ params);
 
 	// ExpandAsync
 	//
@@ -122,7 +134,7 @@ public:
 	//Task^ ExpandAsync(__int64 newsize, IProgress<int>^ progress);
 	//Task^ ExpandAsync(__int64 newsize, VirtualDiskExpandFlags flags, IProgress<int>^ progress);
 	//Task^ ExpandAsync(__int64 newsize, CancellationToken cancellation, IProgress<int>^ progress);
-	Task^ ExpandAsync(__int64 newsize, VirtualDiskExpandFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+	Task^ ExpandAsync(VirtualDiskExpandParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
 
 	// Open (static)
 	//
@@ -130,15 +142,14 @@ public:
 	static VirtualDisk^ Open(String^ path);
 	static VirtualDisk^ Open(String^ path, VirtualDiskAccess access);
 	static VirtualDisk^ Open(String^ path, VirtualDiskAccess access, VirtualDiskOpenFlags flags);
-	static VirtualDisk^ Open(VirtualDiskType type, String^ path);
-	static VirtualDisk^ Open(VirtualDiskType type, String^ path, VirtualDiskAccess access);
-	static VirtualDisk^ Open(VirtualDiskType type, String^ path, VirtualDiskAccess access, VirtualDiskOpenFlags flags);
+	static VirtualDisk^ Open(VirtualDiskOpenParameters^ params);
 
 	// Resize
 	//
 	// Synchronously resizes the virtual disk
-	void Resize(__int64 newsize);
-	void Resize(__int64 newsize, VirtualDiskResizeFlags flags);
+	void Resize(unsigned __int64 newsize);
+	void Resize(unsigned __int64 newsize, VirtualDiskResizeFlags flags);
+	void Resize(VirtualDiskResizeParameters^ params);
 
 	// ResizeAsync
 	//
@@ -150,7 +161,7 @@ public:
 	//Task^ ResizeAsync(__int64 newsize, IProgress<int>^ progress);
 	//Task^ ResizeAsync(__int64 newsize, VirtualDiskResizeFlags flags, IProgress<int>^ progress);
 	//Task^ ResizeAsync(__int64 newsize, CancellationToken cancellation, IProgress<int>^ progress);
-	Task^ ResizeAsync(__int64 newsize, VirtualDiskResizeFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+	Task^ ResizeAsync(VirtualDiskResizeParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
 
 	//-----------------------------------------------------------------------
 	// Properties
@@ -241,7 +252,7 @@ private:
 	// BeginCompact
 	//
 	// Begins an asynchronous compact operation
-	IAsyncResult^ BeginCompact(VirtualDiskCompactFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+	IAsyncResult^ BeginCompact(VirtualDiskCompactParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
 
 	// BeginCreate (static)
 	//
@@ -251,12 +262,12 @@ private:
 	// BeginExpand
 	//
 	// Begins an asynchronous expand operation
-	IAsyncResult^ BeginExpand(__int64 newsize, VirtualDiskExpandFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+	IAsyncResult^ BeginExpand(VirtualDiskExpandParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
 
 	// BeginResize
 	//
 	// Begins an asynchronous resize operation
-	IAsyncResult^ BeginResize(__int64 newsize, VirtualDiskResizeFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+	IAsyncResult^ BeginResize(VirtualDiskResizeParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
 
 	// EndCreate (static)
 	//
