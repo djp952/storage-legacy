@@ -38,6 +38,7 @@ BEGIN_ROOT_NAMESPACE(zuki::storage)
 //
 enum class	VirtualDiskAccess;
 enum class	VirtualDiskAttachFlags;
+ref struct	VirtualDiskAttachParameters;
 enum class	VirtualDiskCompactFlags;
 enum class	VirtualDiskCreateFlags;
 enum class	VirtualDiskDetachFlags;
@@ -65,11 +66,14 @@ public:
 	// Synchronously attaches the virtual disk
 	void Attach(void);
 	void Attach(VirtualDiskAttachFlags flags);
+	void Attach(VirtualDiskAttachParameters^ params);
 
 	// AttachAsync
 	//
 	// Asynchronously attaches the virtual disk
-	Task^ AttachAsync(VirtualDiskAttachFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+	//Task^ AttachAsync(CancellationToken cancellation, IProgress<int>^ progress);
+	//Task^ AttachAsync(VirtualDiskAttachFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+	Task^ AttachAsync(VirtualDiskAttachParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
 
 	// Compact
 	//
@@ -232,7 +236,7 @@ private:
 	// BeginAttach
 	//
 	// Begins an asynchronous attach operation
-	IAsyncResult^ BeginAttach(VirtualDiskAttachFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+	IAsyncResult^ BeginAttach(VirtualDiskAttachParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
 
 	// BeginCompact
 	//

@@ -27,6 +27,7 @@
 #include "GuidUtil.h"
 #include "VirtualDiskAccess.h"
 #include "VirtualDiskAttachFlags.h"
+#include "VirtualDiskAttachParameters.h"
 #include "VirtualDiskAsyncResult.h"
 #include "VirtualDiskCompactFlags.h"
 #include "VirtualDiskCreateFlags.h"
@@ -76,7 +77,9 @@ VirtualDisk::~VirtualDisk()
 void VirtualDisk::Attach(void)
 {
 	CHECK_DISPOSED(m_disposed);
-	Attach(VirtualDiskAttachFlags::None);
+
+	// Synchronously attach the virtual disk using a default set of parameters
+	Attach(gcnew VirtualDiskAttachParameters());
 }
 
 //---------------------------------------------------------------------------
@@ -91,7 +94,30 @@ void VirtualDisk::Attach(void)
 void VirtualDisk::Attach(VirtualDiskAttachFlags flags)
 {
 	CHECK_DISPOSED(m_disposed);
-	VirtualDiskAsyncResult::CompleteAsynchronously(BeginAttach(flags, CancellationToken::None, nullptr));
+
+	// Create a new VirtualDiskAttachParameters instance and set the flags
+	VirtualDiskAttachParameters^ params = gcnew	VirtualDiskAttachParameters();
+	params->Flags = flags;
+
+	// Synchronously attach the virtual disk using the generated parameters
+	Attach(params);
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::Attach
+//
+// Synchronously attaches the virtual disk
+//
+// Arguments:
+//
+//	params			- Attach operation parameters and flags
+
+void VirtualDisk::Attach(VirtualDiskAttachParameters^ params)
+{
+	CHECK_DISPOSED(m_disposed);
+
+	// Synchronously attach the virtual disk using the provided parameters
+	VirtualDiskAsyncResult::CompleteAsynchronously(BeginAttach(params, CancellationToken::None, nullptr));
 }
 
 //---------------------------------------------------------------------------
@@ -101,14 +127,14 @@ void VirtualDisk::Attach(VirtualDiskAttachFlags flags)
 //
 // Arguments:
 //
-//	flags			- Flags to control the attach operation
+//	params			- Attach operation parameters and flags
 //	cancellation	- Token to monitor for cancellation requests
 //	progress		- Optional IProgress<int> on which to report progress
 
-Task^ VirtualDisk::AttachAsync(VirtualDiskAttachFlags flags, CancellationToken cancellation, IProgress<int>^ progress)
+Task^ VirtualDisk::AttachAsync(VirtualDiskAttachParameters^ params, CancellationToken cancellation, IProgress<int>^ progress)
 {
 	CHECK_DISPOSED(m_disposed);
-	return Task::Factory->FromAsync(BeginAttach(flags, cancellation, progress), gcnew Action<IAsyncResult^>(&VirtualDiskAsyncResult::CompleteAsynchronously));
+	return Task::Factory->FromAsync(BeginAttach(params, cancellation, progress), gcnew Action<IAsyncResult^>(&VirtualDiskAsyncResult::CompleteAsynchronously));
 }
 
 //---------------------------------------------------------------------------
@@ -153,23 +179,31 @@ String^ VirtualDisk::AttachedDevicePath::get(void)
 //
 // Arguments:
 //
-//	flags			- Attach operation flags
+//	params			- Attach operation parameters
 //	cancellation	- CancellationToken for the asynchronous operation
 //	progress		- IProgress<int> on which to report operation progress
 
-IAsyncResult^ VirtualDisk::BeginAttach(VirtualDiskAttachFlags flags, CancellationToken cancellation, IProgress<int>^ progress)
+IAsyncResult^ VirtualDisk::BeginAttach(VirtualDiskAttachParameters^ params, CancellationToken cancellation, IProgress<int>^ progress)
 {
+	pin_ptr<uint8_t>			pinsd = __nullptr;			// Pinned security descriptor
+
 	CHECK_DISPOSED(m_disposed);
 
-	zero_init<ATTACH_VIRTUAL_DISK_PARAMETERS> params;
+	if(Object::ReferenceEquals(params, nullptr)) throw gcnew ArgumentNullException("params");
+
+	zero_init<ATTACH_VIRTUAL_DISK_PARAMETERS> attachparams;
+	attachparams.Version = ATTACH_VIRTUAL_DISK_VERSION_1;
 
 	// Create a new event-based NativeOverlapped structure (VirtualDiskAsyncResult will take ownership of these)
 	ManualResetEvent^ waithandle = gcnew ManualResetEvent(false);
 	NativeOverlapped* overlapped = Overlapped(0, 0, waithandle->SafeWaitHandle->DangerousGetHandle(), nullptr).Pack(nullptr, nullptr);
 
+	// If a managed security descriptor was provided, convert it into a pinned binary security descriptor
+	if(params->SecurityDescriptor != nullptr) pinsd = &(params->SecurityDescriptor->GetSecurityDescriptorBinaryForm()[0]);
+
 	// Begin the asynchronous virtual disk operation 
-	DWORD result = AttachVirtualDisk(VirtualDiskSafeHandle::Reference(m_handle), __nullptr /*todo: Security descriptor */,
-		static_cast<ATTACH_VIRTUAL_DISK_FLAG>(flags), 0 /* todo: provider flags */, &params, reinterpret_cast<LPOVERLAPPED>(overlapped));
+	DWORD result = AttachVirtualDisk(VirtualDiskSafeHandle::Reference(m_handle), reinterpret_cast<PSECURITY_DESCRIPTOR>(pinsd), 
+		static_cast<ATTACH_VIRTUAL_DISK_FLAG>(params->Flags), params->ProviderFlags, &attachparams, reinterpret_cast<LPOVERLAPPED>(overlapped));
 
 	// Transfer ownership of all asynchronous resources to a VirtualDiskAsyncResult instance before checking the result
 	VirtualDiskAsyncResult^ asyncresult = gcnew VirtualDiskAsyncResult(m_handle, waithandle, overlapped, cancellation, progress);

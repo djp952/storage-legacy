@@ -27,82 +27,39 @@
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
 using namespace System;
-using namespace System::ComponentModel;
-using namespace System::Runtime::InteropServices;
+using namespace System::Security::AccessControl;
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
+
+// FORWARD DECLARATIONS
+//
+enum class VirtualDiskAttachFlags;
 
 //---------------------------------------------------------------------------
 // Class VirtualDiskAttachParameters
 //
-// Contains virtual hard disk (VHD) attach parameters
+// Virtual disk attach operation parameters
 //---------------------------------------------------------------------------
 
-public ref class VirtualDiskAttachParameters sealed
+public ref struct VirtualDiskAttachParameters sealed
 {
-public:
-
-	// Instance Constructor
-	VirtualDiskAttachParameters() { Construct(); }
-
 	//-----------------------------------------------------------------------
-	// Properties
+	// Fields
 
-	// AutoDetach
+	// Flags
 	//
-	// Flag indicating that the disk should be automatically detached when closed
-	property bool AutoDetach
-	{
-		bool get(void) { return m_autoDetach; }
-		void set(bool value) { m_autoDetach = value; }
-	}
+	// Operation flags
+	VirtualDiskAttachFlags Flags = VirtualDiskAttachFlags::None;
 
-	// DoNotAssignDriveLetter
+	// ProviderFlags
 	//
-	// Flag indicating that a drive letter should not be assigned during attach
-	property bool DoNotAssignDriveLetter
-	{
-		bool get(void) { return m_noDriveLetter; }
-		void set(bool value) { m_noDriveLetter = value; }
-	}
+	// Operation provider-specific flags
+	unsigned int ProviderFlags = 0U;
 
-	// ReadOnly
+	// SecurityDescriptor
 	//
-	// Flag indicating if the backing store will be opened in read-only mode
-	property bool ReadOnly
-	{
-		bool get(void) { return m_readOnly; }
-		void set(bool value) { m_readOnly = value; }
-	}
-
-internal:
-
-	//-----------------------------------------------------------------------
-	// Internal Member Functions
-
-	// Releases strcuture allocated by ToATTACH_VIRTUAL_DISK_PARAMETERS()
-	static void FreeATTACH_VIRTUAL_DISK_PARAMETERS(PATTACH_VIRTUAL_DISK_PARAMETERS pParams);
-
-	// Gets the ATTACH_VIRTUAL_DISK_FLAG bitmask
-	ATTACH_VIRTUAL_DISK_FLAG ToATTACH_VIRTUAL_DISK_FLAG(void);
-
-	// Converts the state of this object into an unmanaged ATTACH_VIRTUAL_DISK_PARAMETERS
-	ATTACH_VIRTUAL_DISK_VERSION ToATTACH_VIRTUAL_DISK_PARAMETERS(PATTACH_VIRTUAL_DISK_PARAMETERS* ppParams);
-
-private:
-
-	//-----------------------------------------------------------------------
-	// Private Member Functions
-
-	// Pseudo-constructor
-	void Construct(void);
-
-	//-----------------------------------------------------------------------
-	// Member Variables
-
-	bool					m_readOnly;
-	bool					m_noDriveLetter;
-	bool					m_autoDetach;
+	// Security descriptor to apply to the attached virtual disk
+	FileSecurity^ SecurityDescriptor = nullptr;
 };
 
 //---------------------------------------------------------------------------
