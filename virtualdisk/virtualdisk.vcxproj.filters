@@ -45,6 +45,9 @@
     <ClCompile Include="VirtualDiskMetadataCollection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="VirtualDiskMetadataEnumerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -123,6 +126,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VirtualDiskMetadataCollection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VirtualDiskMetadataEnumerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

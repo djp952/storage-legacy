@@ -36,23 +36,25 @@ BEGIN_ROOT_NAMESPACE(zuki::storage)
 // Bitmask for specifying access rights to a virtual disk
 //---------------------------------------------------------------------------
 
-[FlagsAttribute]
-public enum class VirtualDiskAccess
-{
-    None				= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_NONE,
-    ReadOnly			= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_ATTACH_RO,
-    ReadWrite			= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_ATTACH_RW,
-    Detach				= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_DETACH,
-    QueryInformation	= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_GET_INFO,
-    Create				= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_CREATE,
-    OfflineOperations	= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_METAOPS,
-    All					= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_ALL,
+// TODO: Unneeded?
 
-	// The following constants are documented as reserved
-	//
-	//Read				= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_READ,
-	//Writable			= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_WRITABLE,
-};
+//[FlagsAttribute]
+//public enum class VirtualDiskAccess
+//{
+//    None				= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_NONE,
+//    ReadOnly			= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_ATTACH_RO,
+//    ReadWrite			= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_ATTACH_RW,
+//    Detach				= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_DETACH,
+//    QueryInformation	= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_GET_INFO,
+//    Create				= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_CREATE,
+//    OfflineOperations	= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_METAOPS,
+//    All					= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_ALL,
+//
+//	// The following constants are documented as reserved
+//	//
+//	//Read				= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_READ,
+//	//Writable			= VIRTUAL_DISK_ACCESS_MASK::VIRTUAL_DISK_ACCESS_WRITABLE,
+//};
 
 //---------------------------------------------------------------------------
 

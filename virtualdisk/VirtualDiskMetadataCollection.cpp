@@ -24,6 +24,7 @@
 #include "VirtualDiskMetadataCollection.h"
 
 #include "GuidUtil.h"
+#include "VirtualDiskMetadataEnumerator.h"
 #include "VirtualDiskSafeHandle.h"
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
@@ -55,7 +56,7 @@ array<Byte>^ VirtualDiskMetadataCollection::default::get(Guid key)
 	VirtualDiskSafeHandle::Reference handle(m_handle);
 	GUID guid = GuidUtil::SysGuidToUUID(key);				
 
-	// Get the size of the metadata blob associated with this GUID
+	// Get the size of the metadata blob associated with this GUID, if zero return a zero length array
 	DWORD result = GetVirtualDiskMetadata(handle, &guid, &cb, __nullptr);
 	if(result == ERROR_SUCCESS) return gcnew array<Byte>(0);
 	if(result != ERROR_MORE_DATA) throw gcnew Win32Exception(result);
@@ -207,8 +208,10 @@ bool VirtualDiskMetadataCollection::ContainsKey(Guid key)
 
 void VirtualDiskMetadataCollection::CopyTo(array<KeyValuePair<Guid, array<Byte>^>>^ destination, int index)
 {
-	// todo
-	throw gcnew NotImplementedException();
+	if(Object::ReferenceEquals(destination, nullptr)) throw gcnew ArgumentNullException("destination");
+
+	IEnumerator<KeyValuePair<Guid, array<Byte>^>>^ enumerator = GetEnumerator();
+	while(enumerator->MoveNext()) destination->SetValue(enumerator->Current, index++);
 }
 
 //---------------------------------------------------------------------------
@@ -236,8 +239,8 @@ int VirtualDiskMetadataCollection::Count::get(void)
 
 IEnumerator<KeyValuePair<Guid, array<Byte>^>>^ VirtualDiskMetadataCollection::GetEnumerator(void)
 {
-	// todo
-	throw gcnew NotImplementedException();
+	// The Keys property actually returns a List<Guid>, which is sufficient for the enumerator
+	return gcnew VirtualDiskMetadataEnumerator(m_handle, dynamic_cast<List<Guid>^>(this->Keys));
 }
 
 //---------------------------------------------------------------------------
@@ -271,8 +274,32 @@ bool VirtualDiskMetadataCollection::IsReadOnly::get(void)
 
 ICollection<Guid>^ VirtualDiskMetadataCollection::Keys::get(void)
 {
-	// todo
-	throw gcnew NotImplementedException();
+	VirtualDiskSafeHandle::Reference	handle(m_handle);	// Unwrap safe handle
+	ULONG								count = 0;			// Number of items
+	GUID*								guids;				// Array of GUIDs
+
+	// Determine the number of GUIDs there are to be cleared from the metadata
+	DWORD result = EnumerateVirtualDiskMetadata(handle, &count, __nullptr);
+	if(result == ERROR_SUCCESS) return gcnew List<Guid>();
+	else if(result != ERROR_MORE_DATA) throw gcnew Win32Exception(result);
+
+	// Allocate an array of GUIDs on the unmanaged heap to store the data
+	try { guids = new GUID[count]; }
+	catch(Exception^) { throw gcnew OutOfMemoryException(); }
+
+	try {
+
+		// Now get all of the GUIDs associated with virtual disk metadata
+		result = EnumerateVirtualDiskMetadata(handle, &count, guids);
+		if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
+
+		// Construct and return a List<> of all the key GUIDs to the caller
+		List<Guid>^ keys = gcnew List<Guid>(count);
+		for(ULONG index = 0; index < count; index++) keys->Add(GuidUtil::UUIDToSysGuid(guids[index]));
+		return keys;
+	}
+
+	finally { delete[] guids; }			// Always release the allocated memory
 }
 
 //---------------------------------------------------------------------------
@@ -331,8 +358,14 @@ bool VirtualDiskMetadataCollection::TryGetValue(Guid key, [OutAttribute] array<B
 
 ICollection<array<Byte>^>^ VirtualDiskMetadataCollection::Values::get(void)
 {
-	// todo
-	throw gcnew NotImplementedException();
+	ICollection<Guid>^ keys = this->Keys;
+	List<array<Byte>^>^ values = gcnew List<array<Byte>^>(keys->Count);
+
+	// This is a rather silly operation and really won't suffer that much by
+	// just using the indexer to get the byte array for each GUID independently
+	for each(Guid guid in keys) values->Add(this->default[guid]);
+
+	return values;
 }
 
 //---------------------------------------------------------------------------

@@ -29,10 +29,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace zuki.storage.virtualdisk.test
 {
 	[TestClass()]
-	public class VirtualDiskOpen
+	public class VirtualDiskCompact
 	{
-		[TestMethod(), TestCategory("Open Virtual Disk")]
-		public void VirtualDiskOpen_()
+		[TestMethod(), TestCategory("Compact Virtual Disk")]
+		public void VirtualDiskCompact_()
 		{
 		}
 	}

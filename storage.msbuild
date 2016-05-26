@@ -12,6 +12,7 @@ Targets:
   - Clean               - Cleans release versions
   - Build               - Rebuilds release versions
   - UnitTest            - Executes release version unit test(s)
+  - CodeCoverageReport  - Generates a code coverage report (Debug|Win32) into out\codecoverage
   - Package             - Generates nuget package(s) into out\nuget
 
 -->
@@ -20,6 +21,8 @@ Targets:
   <PropertyGroup>
     <SolutionDir>.\</SolutionDir>
     <VSTestConsoleExe>&quot;%VS140COMNTOOLS%..\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe&quot;</VSTestConsoleExe>
+    <OpenCoverConsoleExe>&quot;$(SolutionDir)..\external-opencover\tools\OpenCover.Console.exe&quot;</OpenCoverConsoleExe>
+    <ReportGeneratorExe>&quot;$(SolutionDir)..\external-reportgenerator\tools\ReportGenerator.exe&quot;</ReportGeneratorExe>
     <NuGetExe>&quot;$(SolutionDir)..\external-nuget\nuget.exe&quot;</NuGetExe>
   </PropertyGroup>
   
@@ -52,6 +55,31 @@ Targets:
     
     <Exec Command="$(VSTestConsoleExe) /Settings:$(SolutionDir)default.runsettings /Platform:x86 /inIsolation $(SolutionDir)out\Win32\Release\zuki.storage.virtualdisk.test.dll" ContinueOnError="false"/>
     <Exec Command="$(VSTestConsoleExe) /Settings:$(SolutionDir)default.runsettings /Platform:x64 /inIsolation $(SolutionDir)out\x64\Release\zuki.storage.virtualdisk.test.dll" ContinueOnError="false"/>
+  </Target>
+
+  <!-- Generate code coverage report (Debug / Win32 only) -->
+  <Target Name="CodeCoverageReport">
+
+    <PropertyGroup>
+      <CodeCoverageDirDisk>$(SolutionDir)out\codecoverage\disk\</CodeCoverageDirDisk>
+      <CodeCoverageDirStructured>$(SolutionDir)out\codecoverage\structured\</CodeCoverageDirStructured>
+      <CodeCoverageDirVirtualDisk>$(SolutionDir)out\codecoverage\virtualdisk\</CodeCoverageDirVirtualDisk>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(CodeCoverageDirDisk)" ContinueOnError="false"/>
+    <MakeDir Directories="$(CodeCoverageDirStructured)" ContinueOnError="false"/>
+    <MakeDir Directories="$(CodeCoverageDirVirtualDisk)" ContinueOnError="false"/>
+
+    <MSBuild Projects="storage.sln" Properties="Configuration=Debug;Platform=Win32" Targets="Rebuild" ContinueOnError="false"/>
+
+    <Exec Command="$(OpenCoverConsoleExe) -register:user -target:$(VsTestConsoleExe) -targetargs:&quot;/Settings:$(SolutionDir)default.runsettings /Logger:trx /inIsolation $(SolutionDir)out\Win32\Debug\zuki.storage.disk.test.dll&quot; -filter:&quot;+[zuki.storage.disk]*&quot; -mergebyhash -output:&quot;$(CodeCoverageDirDisk)\codecoverage.xml&quot;" ContinueOnError="true"/>
+    <Exec Command="$(ReportGeneratorExe) -reports:&quot;$(CodeCoverageDirDisk)\codecoverage.xml&quot; -targetdir:&quot;$(CodeCoverageDirDisk)&quot;" ContinueOnError="false"/>
+
+    <Exec Command="$(OpenCoverConsoleExe) -register:user -target:$(VsTestConsoleExe) -targetargs:&quot;/Settings:$(SolutionDir)default.runsettings /Logger:trx /inIsolation $(SolutionDir)out\Win32\Debug\zuki.storage.structured.test.dll&quot; -filter:&quot;+[zuki.storage.structured]*&quot; -mergebyhash -output:&quot;$(CodeCoverageDirStructured)\codecoverage.xml&quot;" ContinueOnError="true"/>
+    <Exec Command="$(ReportGeneratorExe) -reports:&quot;$(CodeCoverageDirStructured)\codecoverage.xml&quot; -targetdir:&quot;$(CodeCoverageDirStructured)&quot;" ContinueOnError="false"/>
+
+    <Exec Command="$(OpenCoverConsoleExe) -register:user -target:$(VsTestConsoleExe) -targetargs:&quot;/Settings:$(SolutionDir)default.runsettings /Logger:trx /inIsolation $(SolutionDir)out\Win32\Debug\zuki.storage.virtualdisk.test.dll&quot; -filter:&quot;+[zuki.storage.virtualdisk]*&quot; -mergebyhash -output:&quot;$(CodeCoverageDirVirtualDisk)\codecoverage.xml&quot;" ContinueOnError="true"/>
+    <Exec Command="$(ReportGeneratorExe) -reports:&quot;$(CodeCoverageDirVirtualDisk)\codecoverage.xml&quot; -targetdir:&quot;$(CodeCoverageDirVirtualDisk)&quot;" ContinueOnError="false"/>
   </Target>
 
   <!-- Generate nuget packages -->

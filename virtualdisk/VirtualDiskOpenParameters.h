@@ -24,7 +24,6 @@
 #define __VIRTUALDISKOPENPARAMETERS_H_
 #pragma once
 
-#include "VirtualDiskAccess.h"
 #include "VirtualDiskOpenFlags.h"
 #include "VirtualDiskType.h"
 
@@ -46,16 +45,10 @@ public ref struct VirtualDiskOpenParameters sealed
 	//
 	VirtualDiskOpenParameters() {}
 	VirtualDiskOpenParameters(String^ path) : Path(path) {}
-	VirtualDiskOpenParameters(String^ path, VirtualDiskAccess access) : Path(path), Access(access) {}
-	VirtualDiskOpenParameters(String^ path, VirtualDiskAccess access, VirtualDiskOpenFlags flags) : Path(path), Access(access), Flags(flags) {}
+	VirtualDiskOpenParameters(String^ path, VirtualDiskOpenFlags flags) : Path(path), Flags(flags) {}
 
 	//-----------------------------------------------------------------------
 	// Fields
-
-	// Access
-	//
-	// Access mask to use to open the virtual disk
-	VirtualDiskAccess Access = VirtualDiskAccess::ReadWrite;
 
 	// Flags
 	//

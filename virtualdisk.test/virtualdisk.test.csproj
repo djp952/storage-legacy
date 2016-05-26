@@ -76,9 +76,16 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="VirtualDiskAttach.cs" />
+    <Compile Include="VirtualDiskCompact.cs" />
+    <Compile Include="VirtualDiskCreate.cs" />
+    <Compile Include="VirtualDiskDetach.cs" />
+    <Compile Include="VirtualDiskExpand.cs" />
+    <Compile Include="VirtualDiskMetadata.cs" />
     <Compile Include="VirtualDiskOpen.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="tmp\version.cs" />
+    <Compile Include="VirtualDiskResize.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="version.ini" />

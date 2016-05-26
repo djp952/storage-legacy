@@ -25,7 +25,6 @@
 
 #include "zeroinit.h"
 #include "GuidUtil.h"
-#include "VirtualDiskAccess.h"
 #include "VirtualDiskAttachFlags.h"
 #include "VirtualDiskAttachParameters.h"
 #include "VirtualDiskAsyncResult.h"
@@ -751,27 +750,11 @@ VirtualDisk^ VirtualDisk::Open(String^ path)
 // Arguments:
 //
 //	path			- Path to the virtual disk file
-//	access			- Access mask for the opened virtual disk
-
-VirtualDisk^ VirtualDisk::Open(String^ path, VirtualDiskAccess access)
-{
-	return Open(gcnew VirtualDiskOpenParameters(path, access));
-}
-
-//-----------------------------------------------------------------------------
-// VirtualDisk::Open (static)
-//
-// Opens an existing virtual disk
-//
-// Arguments:
-//
-//	path			- Path to the virtual disk file
-//	access			- Access mask for the opened virtual disk
 //	flags			- Flags to control the open operation
 
-VirtualDisk^ VirtualDisk::Open(String^ path, VirtualDiskAccess access, VirtualDiskOpenFlags flags)
+VirtualDisk^ VirtualDisk::Open(String^ path, VirtualDiskOpenFlags flags)
 {
-	return Open(gcnew VirtualDiskOpenParameters(path, access, flags));
+	return Open(gcnew VirtualDiskOpenParameters(path, flags));
 }
 
 //-----------------------------------------------------------------------------
@@ -795,22 +778,39 @@ VirtualDisk^ VirtualDisk::Open(VirtualDiskOpenParameters^ params)
 	pin_ptr<const wchar_t> pinpath = PtrToStringChars(params->Path);
 	params->Type.ToVIRTUAL_STORAGE_TYPE(&storagetype);
 
+	// Open operation parameters (zero-initialized)
 	zero_init<OPEN_VIRTUAL_DISK_PARAMETERS> openparams;
-	openparams.Version = OPEN_VIRTUAL_DISK_VERSION_2;
-	openparams.Version2.GetInfoOnly = (params->InformationOnly) ? TRUE : FALSE;
-	openparams.Version2.ReadOnly = (params->ReadOnlyBackingStore) ? TRUE : FALSE;
-	openparams.Version2.ResiliencyGuid = GuidUtil::SysGuidToUUID(params->ResiliencyGuid);
 
-	// Windows 10 and higher supports OPEN_VIRTUAL_DISK_VERSION_3
-	if(IsWindows10OrGreater()) {
+	// Access to the virtual disk is automatic here, always NONE for the V2/V3 API
+	VIRTUAL_DISK_ACCESS_MASK access = VIRTUAL_DISK_ACCESS_NONE;
 
-		openparams.Version = OPEN_VIRTUAL_DISK_VERSION_3;
-		openparams.Version3.SnapshotId = GuidUtil::SysGuidToUUID(params->SnapshotIdentifier);
+	// .ISO files can only be opened in read-only mode using OPEN_VIRTUAL_DISK_VERSION_1
+	if((params->Type == VirtualDiskType::ISO) || 
+		((params->Type == VirtualDiskType::Unknown) && System::IO::Path::GetExtension(params->Path)->ToLower() == ".iso")) {
+
+		access = VIRTUAL_DISK_ACCESS_READ;
+		openparams.Version = OPEN_VIRTUAL_DISK_VERSION_1;
+	}
+
+	// .VHD/.VHDX files can be opened using OPEN_VIRTUAL_DISK_VERSION_2/OPEN_VIRTUAL_DISK_VERSION_3
+	else {
+
+		openparams.Version = OPEN_VIRTUAL_DISK_VERSION_2;
+		openparams.Version2.GetInfoOnly = (params->InformationOnly) ? TRUE : FALSE;
+		openparams.Version2.ReadOnly = (params->ReadOnlyBackingStore) ? TRUE : FALSE;
+		openparams.Version2.ResiliencyGuid = GuidUtil::SysGuidToUUID(params->ResiliencyGuid);
+
+		// Windows 10 and higher supports OPEN_VIRTUAL_DISK_VERSION_3
+		if(IsWindows10OrGreater()) {
+
+			openparams.Version = OPEN_VIRTUAL_DISK_VERSION_3;
+			openparams.Version3.SnapshotId = GuidUtil::SysGuidToUUID(params->SnapshotIdentifier);
+		}
 	}
 
 	// Attempt to open the virtual disk using the provided information
-	DWORD result = OpenVirtualDisk(&storagetype, pinpath, static_cast<VIRTUAL_DISK_ACCESS_MASK>(params->Access), 
-		static_cast<OPEN_VIRTUAL_DISK_FLAG>(params->Flags), &openparams, &handle);
+	DWORD result = OpenVirtualDisk(&storagetype, pinpath, access, static_cast<OPEN_VIRTUAL_DISK_FLAG>(params->Flags), 
+		&openparams, &handle);
 	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
 
 	// Wrap the resultant HANDLE into a VirtualDiskSafeHandle instance

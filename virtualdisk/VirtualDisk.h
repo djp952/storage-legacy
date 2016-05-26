@@ -148,8 +148,7 @@ public:
 	//
 	// Opens an existing virtual disk
 	static VirtualDisk^ Open(String^ path);
-	static VirtualDisk^ Open(String^ path, VirtualDiskAccess access);
-	static VirtualDisk^ Open(String^ path, VirtualDiskAccess access, VirtualDiskOpenFlags flags);
+	static VirtualDisk^ Open(String^ path, VirtualDiskOpenFlags flags);
 	static VirtualDisk^ Open(VirtualDiskOpenParameters^ params);
 
 	// Resize

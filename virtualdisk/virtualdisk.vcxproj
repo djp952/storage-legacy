@@ -170,6 +170,7 @@
     <ClInclude Include="VirtualDiskExpandParameters.h" />
     <ClInclude Include="VirtualDiskMergeFlags.h" />
     <ClInclude Include="VirtualDiskMetadataCollection.h" />
+    <ClInclude Include="VirtualDiskMetadataEnumerator.h" />
     <ClInclude Include="VirtualDiskMirrorFlags.h" />
     <ClInclude Include="VirtualDiskOpenFlags.h" />
     <ClInclude Include="VirtualDiskOpenParameters.h" />
@@ -200,6 +201,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="VirtualDiskMetadataCollection.cpp" />
+    <ClCompile Include="VirtualDiskMetadataEnumerator.cpp" />
     <ClCompile Include="VirtualDiskSafeHandle.cpp" />
     <ClCompile Include="VirtualDisk.cpp" />
     <ClCompile Include="VirtualDiskType.cpp" />
