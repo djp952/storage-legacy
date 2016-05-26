@@ -37,6 +37,7 @@
 #include "VirtualDiskDetachParameters.h"
 #include "VirtualDiskExpandFlags.h"
 #include "VirtualDiskExpandParameters.h"
+#include "VirtualDiskMetadataCollection.h"
 #include "VirtualDiskOpenFlags.h"
 #include "VirtualDiskOpenParameters.h"
 #include "VirtualDiskResizeFlags.h"
@@ -58,6 +59,7 @@ BEGIN_ROOT_NAMESPACE(zuki::storage)
 VirtualDisk::VirtualDisk(VirtualDiskSafeHandle^ handle) : m_handle(handle)
 {
 	if(Object::ReferenceEquals(handle, nullptr)) throw gcnew ArgumentNullException("handle");
+	m_metadata = gcnew VirtualDiskMetadataCollection(handle);
 }
 
 //---------------------------------------------------------------------------
@@ -69,6 +71,26 @@ VirtualDisk::~VirtualDisk()
 
 	delete m_handle;
 	m_disposed = true;
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::AddParentDisk
+//
+// Adds a parent to a virtual disk opened with CustomDifferencingChain
+//
+// Arguments:
+//
+//	path		- Path to the parent virtual disk to be added
+
+void VirtualDisk::AddParentDisk(String^ path)
+{
+	CHECK_DISPOSED(m_disposed);
+
+	if(Object::ReferenceEquals(path, nullptr)) throw gcnew ArgumentNullException("path");
+
+	pin_ptr<const wchar_t> pinpath = PtrToStringChars(path);
+	DWORD result = AddVirtualDiskParent(VirtualDiskSafeHandle::Reference(m_handle), pinpath);
+	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
 }
 
 //---------------------------------------------------------------------------
@@ -696,6 +718,17 @@ int VirtualDisk::FragmentationLevel::get(void)
 	return static_cast<int>(info.FragmentationPercentage);
 }
 
+//---------------------------------------------------------------------------
+// VirtualDisk::Metadata::get
+//
+// Gets a reference to the metadata collection for this virtual disk
+
+VirtualDiskMetadataCollection^ VirtualDisk::Metadata::get(void)
+{
+	CHECK_DISPOSED(m_disposed);
+	return m_metadata;
+}
+	
 //-----------------------------------------------------------------------------
 // VirtualDisk::Open (static)
 //

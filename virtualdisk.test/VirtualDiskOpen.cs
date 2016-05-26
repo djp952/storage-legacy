@@ -47,27 +47,11 @@ namespace zuki.storage.virtualdisk.test
 			Task<VirtualDisk> task = VirtualDisk.CreateAsync(createparams, CancellationToken.None, progress);
 			VirtualDisk disk = await task;
 
-			//disk.Compact();
-			//
+			Guid g = Guid.NewGuid();
+			disk.Metadata.Add(g, new byte[] { 1, 2, 3 });
+			byte[] newbytes;
 
-			//CancellationTokenSource cts = new CancellationTokenSource();
-
-			//VirtualDisk vdisk = VirtualDisk.Open(@"D:\LINUX-BUILD.vhdx");
-			//vdisk.CompactTest();
-			//Thread.Sleep(60000);
-
-			//Task t = vdisk.ExpandAsync(2 * 34359738368L, VirtualDiskExpandFlags.None, cts.Token, progress);
-			////cts.CancelAfter(1000);
-			//try
-			//{
-			//	await t;
-			//}
-			//catch (OperationCanceledException)
-			//{
-			//	int x = 123;
-			//}
-
-			//int y = 123;
+			int y = 123;
 		}
 	}
 }

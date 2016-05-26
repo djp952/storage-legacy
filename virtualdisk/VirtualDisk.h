@@ -47,6 +47,7 @@ enum class	VirtualDiskDetachFlags;
 ref struct	VirtualDiskDetachParameters;
 enum class	VirtualDiskExpandFlags;
 ref struct	VirtualDiskExpandParameters;
+ref class	VirtualDiskMetadataCollection;
 enum class	VirtualDiskOpenFlags;
 ref struct	VirtualDiskOpenParameters;
 enum class	VirtualDiskResizeFlags;
@@ -66,6 +67,11 @@ public:
 
 	//-----------------------------------------------------------------------
 	// Member Functions
+
+	// AddParentDisk
+	//
+	// Adds a parent to a virtual disk opened with CustomDifferencingChain
+	void AddParentDisk(String^ path);
 
 	// Attach
 	//
@@ -192,6 +198,14 @@ public:
 		int get(void);
 	}
 
+	// Metadata
+	//
+	// Gets a reference to the metadata collection for this virtual disk
+	property VirtualDiskMetadataCollection^ Metadata
+	{
+		VirtualDiskMetadataCollection^ get(void);
+	}
+
 	// PhysicalSize
 	//
 	// Gets the physical size of the virtual disk
@@ -279,8 +293,9 @@ private:
 	//-----------------------------------------------------------------------
 	// Member Variables
 
-	bool						m_disposed;		// Object disposal flag
-	VirtualDiskSafeHandle^		m_handle;		// Virtual Disk SafeHandle
+	bool							m_disposed;		// Object disposal flag
+	VirtualDiskSafeHandle^			m_handle;		// Virtual Disk SafeHandle
+	VirtualDiskMetadataCollection^	m_metadata;		// Metadata collection
 };
 
 //---------------------------------------------------------------------------
