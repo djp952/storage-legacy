@@ -32,6 +32,7 @@
 #include "VirtualDiskCompactFlags.h"
 #include "VirtualDiskCompactParameters.h"
 #include "VirtualDiskCreateFlags.h"
+#include "VirtualDiskCreateParameters.h"
 #include "VirtualDiskDetachFlags.h"
 #include "VirtualDiskDetachParameters.h"
 #include "VirtualDiskExpandFlags.h"
@@ -253,36 +254,61 @@ IAsyncResult^ VirtualDisk::BeginCompact(VirtualDiskCompactParameters^ params, Ca
 //
 // Arguments:
 //
-//	path			- Fully qualified path to the virtual disk file
-//	flags			- Flags to control the behavior of the disk creation
+//	params			- Create operation parameters
 //	cancellation	- Asynchronous operation cancellation token
 //	progress		- Optional IProgress<> on which to report operation progress
 
-IAsyncResult^ VirtualDisk::BeginCreate(String^ path, VirtualDiskCreateFlags flags, CancellationToken cancellation, IProgress<int>^ progress)
+IAsyncResult^ VirtualDisk::BeginCreate(VirtualDiskCreateParameters^ params, CancellationToken cancellation, IProgress<int>^ progress)
 {
-	if(Object::ReferenceEquals(path, nullptr)) throw gcnew ArgumentNullException("path");
+	VIRTUAL_STORAGE_TYPE			storagetype;			// Virtual storage type
+	pin_ptr<uint8_t>				pinsd = __nullptr;		// Pinned security descriptor
+	HANDLE							handle = __nullptr;		// Virtual disk object handle
 
-	// todo
-	zero_init<CREATE_VIRTUAL_DISK_PARAMETERS> params;
-	params.Version = CREATE_VIRTUAL_DISK_VERSION_1;
-	params.Version1.MaximumSize = 4194304 * 400;		// 1600MB
-	params.Version1.SectorSizeInBytes = 512;
+	if(Object::ReferenceEquals(params, nullptr)) throw gcnew ArgumentNullException("params");
+	if(Object::ReferenceEquals(params->Path, nullptr)) throw gcnew ArgumentNullException("params.Path");
 
-	// todo
-	zero_init<VIRTUAL_STORAGE_TYPE> type;
-	type.DeviceId = VIRTUAL_STORAGE_TYPE_DEVICE_VHD;
-	type.VendorId = VIRTUAL_STORAGE_TYPE_VENDOR_MICROSOFT;
+	// Pin and convert managed types into unmanaged types and structures
+	pin_ptr<const wchar_t> pinpath = PtrToStringChars(params->Path);
+	params->Type.ToVIRTUAL_STORAGE_TYPE(&storagetype);
+
+	pin_ptr<const wchar_t> pinparentpath = (String::IsNullOrEmpty(params->ParentDiskPath)) ? __nullptr : PtrToStringChars(params->ParentDiskPath);
+	pin_ptr<const wchar_t> pinsourcepath = (String::IsNullOrEmpty(params->SourceDiskPath)) ? __nullptr : PtrToStringChars(params->SourceDiskPath);
+	pin_ptr<const wchar_t> pinsourcelimitpath = (String::IsNullOrEmpty(params->SourceLimitPath)) ? __nullptr : PtrToStringChars(params->SourceLimitPath);
+
+	// todo: these can be manipulated a bit at runtime to clean up bad parameters - see MSDN documentation
+	// todo: throw exceptions for known bad parameters; can do that for open and other operations too,
+	// consider adding a .Validate method to the parameter classes
+	zero_init<CREATE_VIRTUAL_DISK_PARAMETERS> createparams;
+	createparams.Version = CREATE_VIRTUAL_DISK_VERSION_2;
+	createparams.Version2.UniqueId = GuidUtil::SysGuidToUUID(params->UniqueIdentifier);
+	createparams.Version2.MaximumSize = params->MaximumSize;
+	createparams.Version2.BlockSizeInBytes = params->BlockSize;
+	createparams.Version2.SectorSizeInBytes = params->SectorSize;
+    createparams.Version2.PhysicalSectorSizeInBytes = 0;	// <-- TODO: NOT DOCUMENTED?
+	createparams.Version2.ParentPath = pinparentpath;
+	createparams.Version2.SourcePath = pinsourcepath;
+	createparams.Version2.OpenFlags = static_cast<OPEN_VIRTUAL_DISK_FLAG>(params->OpenFlags);
+	params->ParentDiskType.ToVIRTUAL_STORAGE_TYPE(&createparams.Version2.ParentVirtualStorageType);
+	params->SourceDiskType.ToVIRTUAL_STORAGE_TYPE(&createparams.Version2.SourceVirtualStorageType);
+	createparams.Version2.ResiliencyGuid = GuidUtil::SysGuidToUUID(params->ResiliencyGuid);
+
+	if(IsWindows10OrGreater()) {
+
+		createparams.Version = CREATE_VIRTUAL_DISK_VERSION_3;
+        createparams.Version3.SourceLimitPath = pinsourcelimitpath;
+		params->BackingStorageType.ToVIRTUAL_STORAGE_TYPE(&createparams.Version3.BackingStorageType);
+	}
 
 	// Create a new event-based NativeOverlapped structure (VirtualDiskAsyncResult will take ownership of these)
 	ManualResetEvent^ waithandle = gcnew ManualResetEvent(false);
 	NativeOverlapped* overlapped = Overlapped(0, 0, waithandle->SafeWaitHandle->DangerousGetHandle(), nullptr).Pack(nullptr, nullptr);
 
-	pin_ptr<const wchar_t> pinpath = PtrToStringChars(path);		// Destination path
-	HANDLE handle = __nullptr;										// Virtual disk handle
+	// If a managed security descriptor was provided, convert it into a pinned binary security descriptor
+	if(params->SecurityDescriptor != nullptr) pinsd = &(params->SecurityDescriptor->GetSecurityDescriptorBinaryForm()[0]);
 
 	// Begin the asynchronous virtual disk operation
-	DWORD result = CreateVirtualDisk(&type, pinpath, VIRTUAL_DISK_ACCESS_ALL, __nullptr, static_cast<CREATE_VIRTUAL_DISK_FLAG>(flags),
-		0, &params, reinterpret_cast<LPOVERLAPPED>(overlapped), &handle);
+	DWORD result = CreateVirtualDisk(&storagetype, pinpath, VIRTUAL_DISK_ACCESS_NONE, reinterpret_cast<PSECURITY_DESCRIPTOR>(pinsd), 
+		static_cast<CREATE_VIRTUAL_DISK_FLAG>(params->Flags), params->ProviderFlags, &createparams, reinterpret_cast<LPOVERLAPPED>(overlapped), &handle);
 
 	// Transfer ownership of all asynchronous resources to a VirtualDiskAsyncResult instance before checking the result
 	VirtualDiskAsyncResult^ asyncresult = gcnew VirtualDiskAsyncResult(gcnew VirtualDiskSafeHandle(handle), waithandle,
@@ -463,10 +489,12 @@ Task^ VirtualDisk::CompactAsync(VirtualDiskCompactParameters^ params, Cancellati
 // Arguments:
 //
 //	path			- Fully qualified path to the virtual disk file
+//	type			- Virtual disk type to be created
+//	maxsize			- Maximum size of the created virtual disk
 
-VirtualDisk^ VirtualDisk::Create(String^ path)
+VirtualDisk^ VirtualDisk::Create(String^ path, VirtualDiskType type, unsigned __int64 maxsize)
 {
-	return Create(path, VirtualDiskCreateFlags::None);
+	return Create(gcnew VirtualDiskCreateParameters(path, type, maxsize));
 }
 
 //---------------------------------------------------------------------------
@@ -477,11 +505,27 @@ VirtualDisk^ VirtualDisk::Create(String^ path)
 // Arguments:
 //
 //	path			- Fully qualified path to the virtual disk file
+//	type			- Virtual disk type to be created
+//	maxsize			- Maximum size of the created virtual disk
 //	flags			- Flags to control the behavior of the disk creation
 
-VirtualDisk^ VirtualDisk::Create(String^ path, VirtualDiskCreateFlags flags)
+VirtualDisk^ VirtualDisk::Create(String^ path, VirtualDiskType type, unsigned __int64 maxsize, VirtualDiskCreateFlags flags)
 {
-	return EndCreate(BeginCreate(path, flags, CancellationToken::None, nullptr));
+	return Create(gcnew VirtualDiskCreateParameters(path, type, maxsize, flags));
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::Create (static)
+//
+// Synchronously creates a virtual disk
+//
+// Arguments:
+//
+//	params		- Parameters and flags for the create operation
+
+VirtualDisk^ VirtualDisk::Create(VirtualDiskCreateParameters^ params)
+{
+	return EndCreate(BeginCreate(params, CancellationToken::None, nullptr));
 }
 
 //---------------------------------------------------------------------------
@@ -491,14 +535,13 @@ VirtualDisk^ VirtualDisk::Create(String^ path, VirtualDiskCreateFlags flags)
 //
 // Arguments:
 //
-//	path			- Fully qualified path to the virtual disk file
-//	flags			- Flags to control the behavior of the disk creation
+//	params			- Create operation parameters
 //	cancellation	- Asynchronous operation cancellation token
 //	progress		- Optional IProgress<> on which to report operation progress
 
-Task<VirtualDisk^>^ VirtualDisk::CreateAsync(String^ path, VirtualDiskCreateFlags flags, CancellationToken cancellation, IProgress<int>^ progress)
+Task<VirtualDisk^>^ VirtualDisk::CreateAsync(VirtualDiskCreateParameters^ params, CancellationToken cancellation, IProgress<int>^ progress)
 {
-	return Task<VirtualDisk^>::Factory->FromAsync(BeginCreate(path, flags, cancellation, progress), gcnew Func<IAsyncResult^, VirtualDisk^>(&EndCreate));
+	return Task<VirtualDisk^>::Factory->FromAsync(BeginCreate(params, cancellation, progress), gcnew Func<IAsyncResult^, VirtualDisk^>(&EndCreate));
 }
 
 //---------------------------------------------------------------------------
@@ -729,7 +772,7 @@ VirtualDisk^ VirtualDisk::Open(VirtualDiskOpenParameters^ params)
 	if(IsWindows10OrGreater()) {
 
 		openparams.Version = OPEN_VIRTUAL_DISK_VERSION_3;
-		openparams.Version3.SnapshotId = GuidUtil::SysGuidToUUID(params->SnapshotId);
+		openparams.Version3.SnapshotId = GuidUtil::SysGuidToUUID(params->SnapshotIdentifier);
 	}
 
 	// Attempt to open the virtual disk using the provided information

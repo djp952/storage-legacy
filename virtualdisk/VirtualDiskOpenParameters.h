@@ -24,6 +24,8 @@
 #define __VIRTUALDISKOPENPARAMETERS_H_
 #pragma once
 
+#include "VirtualDiskAccess.h"
+#include "VirtualDiskOpenFlags.h"
 #include "VirtualDiskType.h"
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
@@ -31,11 +33,6 @@
 using namespace System;
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
-
-// FORWARD DECLARATIONS
-//
-enum class	VirtualDiskAccess;
-enum class	VirtualDiskOpenFlags;
 
 //---------------------------------------------------------------------------
 // Class VirtualDiskOpenParameters
@@ -85,10 +82,10 @@ public ref struct VirtualDiskOpenParameters sealed
 	// Resiliency GUID to specify when opening files
 	Guid ResiliencyGuid = Guid::Empty;
 
-	// SnapshotId
+	// SnapshotIdentifier
 	//
 	// Snapshot identifier GUID
-	Guid SnapshotId = Guid::Empty;
+	Guid SnapshotIdentifier = Guid::Empty;
 
 	// Type
 	//

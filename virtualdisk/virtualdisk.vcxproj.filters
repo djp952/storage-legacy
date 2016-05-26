@@ -116,6 +116,9 @@
     <ClInclude Include="VirtualDiskResizeParameters.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="VirtualDiskCreateParameters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="version.ini" />

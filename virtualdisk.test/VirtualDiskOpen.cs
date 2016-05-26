@@ -38,8 +38,13 @@ namespace zuki.storage.virtualdisk.test
 		[TestMethod(), TestCategory("Open Virtual Disk")]
 		public async Task VirtualDisk_OpenPath()
 		{
+			if (System.IO.File.Exists("D:\\test.vhdx")) System.IO.File.Delete("D:\\test.vhdx");
+
 			IProgress<int> progress = new Progress<int>(new Action<int>(OnProgress));
-			Task<VirtualDisk> task = VirtualDisk.CreateAsync("D:\\test.vhd", VirtualDiskCreateFlags.None, CancellationToken.None, progress);
+			VirtualDiskCreateParameters createparams = new VirtualDiskCreateParameters("D:\\test.vhdx", VirtualDiskType.VHDX, 8 * 1024 * 1024);
+			createparams.Flags = VirtualDiskCreateFlags.FullPhysicalAllocation;
+
+			Task<VirtualDisk> task = VirtualDisk.CreateAsync(createparams, CancellationToken.None, progress);
 			VirtualDisk disk = await task;
 
 			//disk.Compact();

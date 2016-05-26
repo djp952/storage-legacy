@@ -163,6 +163,7 @@
     <ClInclude Include="VirtualDiskCompactFlags.h" />
     <ClInclude Include="VirtualDiskCompactParameters.h" />
     <ClInclude Include="VirtualDiskCreateFlags.h" />
+    <ClInclude Include="VirtualDiskCreateParameters.h" />
     <ClInclude Include="VirtualDiskDetachFlags.h" />
     <ClInclude Include="VirtualDiskDetachParameters.h" />
     <ClInclude Include="VirtualDiskExpandFlags.h" />

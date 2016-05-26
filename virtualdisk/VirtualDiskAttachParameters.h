@@ -24,16 +24,14 @@
 #define __VIRTUALDISKATTACHPARAMETERS_H_
 #pragma once
 
+#include "VirtualDiskAttachFlags.h"
+
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
 using namespace System;
 using namespace System::Security::AccessControl;
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
-
-// FORWARD DECLARATIONS
-//
-enum class VirtualDiskAttachFlags;
 
 //---------------------------------------------------------------------------
 // Class VirtualDiskAttachParameters

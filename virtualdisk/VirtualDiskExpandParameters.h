@@ -24,15 +24,13 @@
 #define __VIRTUALDISKEXPANDPARAMETERS_H_
 #pragma once
 
+#include "VirtualDiskExpandFlags.h"
+
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
 using namespace System;
 
 BEGIN_ROOT_NAMESPACE(zuki::storage)
-
-// FORWARD DECLARATIONS
-//
-enum class VirtualDiskExpandFlags;
 
 //---------------------------------------------------------------------------
 // Class VirtualDiskExpandParameters

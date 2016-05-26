@@ -42,6 +42,7 @@ ref struct	VirtualDiskAttachParameters;
 enum class	VirtualDiskCompactFlags;
 ref struct	VirtualDiskCompactParameters;
 enum class	VirtualDiskCreateFlags;
+ref struct	VirtualDiskCreateParameters;
 enum class	VirtualDiskDetachFlags;
 ref struct	VirtualDiskDetachParameters;
 enum class	VirtualDiskExpandFlags;
@@ -102,13 +103,14 @@ public:
 	// Create
 	//
 	// Synchronously creates a new virtual disk
-	static VirtualDisk^ Create(String^ path);
-	static VirtualDisk^ Create(String^ path, VirtualDiskCreateFlags flags);
+	static VirtualDisk^ Create(String^ path, VirtualDiskType type, unsigned __int64 maxsize);
+	static VirtualDisk^ Create(String^ path, VirtualDiskType type, unsigned __int64 maxsize, VirtualDiskCreateFlags flags);
+	static VirtualDisk^ Create(VirtualDiskCreateParameters^ params);
 
 	// CreateAsync
 	//
 	// Asynchronously creates a new virtual disk
-	static Task<VirtualDisk^>^ CreateAsync(String^ path, VirtualDiskCreateFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+	static Task<VirtualDisk^>^ CreateAsync(VirtualDiskCreateParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
 
 	// Detach
 	//
@@ -257,7 +259,7 @@ private:
 	// BeginCreate (static)
 	//
 	// Begins an asynchronous create operation
-	static IAsyncResult^ BeginCreate(String^ path, VirtualDiskCreateFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
+	static IAsyncResult^ BeginCreate(VirtualDiskCreateParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
 
 	// BeginExpand
 	//
