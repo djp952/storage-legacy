@@ -48,6 +48,10 @@ ref struct	VirtualDiskDetachParameters;
 enum class	VirtualDiskExpandFlags;
 ref struct	VirtualDiskExpandParameters;
 ref class	VirtualDiskMetadataCollection;
+enum class	VirtualDiskMergeFlags;
+ref struct	VirtualDiskMergeParameters;
+enum class	VirtualDiskMirrorFlags;
+ref struct	VirtualDiskMirrorParameters;
 enum class	VirtualDiskOpenFlags;
 ref struct	VirtualDiskOpenParameters;
 enum class	VirtualDiskResizeFlags;
@@ -144,6 +148,30 @@ public:
 	//Task^ ExpandAsync(__int64 newsize, CancellationToken cancellation, IProgress<int>^ progress);
 	Task^ ExpandAsync(VirtualDiskExpandParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
 
+	// Merge
+	//
+	// Synchronously merges a child disk within a differencing chain
+	void Merge(unsigned int sourcedepth, unsigned int targetdepth);
+	void Merge(unsigned int sourcedepth, unsigned int targetdepth, VirtualDiskMergeFlags flags);
+	void Merge(VirtualDiskMergeParameters^ params);
+
+	// MergeAsync
+	//
+	// Asynchronously merges a child disk within a differencing chain
+	Task^ MergeAsync(VirtualDiskMergeParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
+
+	// Mirror
+	//
+	// Synchronously mirrors the virtual disk
+	void Mirror(String^ targetpath);
+	void Mirror(String^ targetpath, VirtualDiskMirrorFlags flags);
+	void Mirror(VirtualDiskMirrorParameters^ params);
+
+	// MirrorAsync
+	//
+	// Asynchronously mirrors the virtual disk
+	Task^ MirrorAsync(VirtualDiskMirrorParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
+
 	// Open (static)
 	//
 	// Opens an existing virtual disk
@@ -221,6 +249,14 @@ public:
 		unsigned int get(void);
 	}
 
+	// SmallestSafeVirtualSize
+	//
+	// Gets the smallest safe virtual size of the disk
+	property unsigned __int64 SmallestSafeVirtualSize
+	{
+		unsigned __int64 get(void);
+	}
+
 	// Type
 	//
 	// Gets the virtual disk type
@@ -278,6 +314,16 @@ private:
 	//
 	// Begins an asynchronous expand operation
 	IAsyncResult^ BeginExpand(VirtualDiskExpandParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
+
+	// BeginMerge
+	//
+	// Begins an asynchronous merge operation
+	IAsyncResult^ BeginMerge(VirtualDiskMergeParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
+
+	// BeginMirror
+	//
+	// Begins an asynchronous mirror operation
+	IAsyncResult^ BeginMirror(VirtualDiskMirrorParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
 
 	// BeginResize
 	//

@@ -169,9 +169,11 @@
     <ClInclude Include="VirtualDiskExpandFlags.h" />
     <ClInclude Include="VirtualDiskExpandParameters.h" />
     <ClInclude Include="VirtualDiskMergeFlags.h" />
+    <ClInclude Include="VirtualDiskMergeParameters.h" />
     <ClInclude Include="VirtualDiskMetadataCollection.h" />
     <ClInclude Include="VirtualDiskMetadataEnumerator.h" />
     <ClInclude Include="VirtualDiskMirrorFlags.h" />
+    <ClInclude Include="VirtualDiskMirrorParameters.h" />
     <ClInclude Include="VirtualDiskOpenFlags.h" />
     <ClInclude Include="VirtualDiskOpenParameters.h" />
     <ClInclude Include="VirtualDiskResizeFlags.h" />

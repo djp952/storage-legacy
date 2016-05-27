@@ -37,6 +37,10 @@
 #include "VirtualDiskExpandFlags.h"
 #include "VirtualDiskExpandParameters.h"
 #include "VirtualDiskMetadataCollection.h"
+#include "VirtualDiskMergeFlags.h"
+#include "VirtualDiskMergeParameters.h"
+#include "VirtualDiskMirrorFlags.h"
+#include "VirtualDiskMirrorParameters.h"
 #include "VirtualDiskOpenFlags.h"
 #include "VirtualDiskOpenParameters.h"
 #include "VirtualDiskResizeFlags.h"
@@ -369,6 +373,86 @@ IAsyncResult^ VirtualDisk::BeginExpand(VirtualDiskExpandParameters^ params, Canc
 	// Begin the asynchronous virtual disk operation 
 	DWORD result = ExpandVirtualDisk(VirtualDiskSafeHandle::Reference(m_handle), static_cast<EXPAND_VIRTUAL_DISK_FLAG>(params->Flags), 
 		&expandparams, reinterpret_cast<LPOVERLAPPED>(overlapped));
+
+	// Transfer ownership of all asynchronous resources to a VirtualDiskAsyncResult instance before checking the result
+	VirtualDiskAsyncResult^ asyncresult = gcnew VirtualDiskAsyncResult(m_handle, waithandle, overlapped, cancellation, progress);
+
+	// If the request to create the disk failed, complete the operation synchronously to clean everything up
+	if(result != ERROR_IO_PENDING) asyncresult->CompleteSynchronously(result);
+
+	return asyncresult;
+}
+
+//-----------------------------------------------------------------------------
+// VirtualDisk::BeginMerge (private)
+//
+// Starts an asynchronous merge operation
+//
+// Arguments:
+//
+//	params			- Merge operation parameters
+//	cancellation	- CancellationToken for the asynchronous operation
+//	progress		- IProgress<int> on which to report operation progress
+
+IAsyncResult^ VirtualDisk::BeginMerge(VirtualDiskMergeParameters^ params, CancellationToken cancellation, IProgress<int>^ progress)
+{
+	CHECK_DISPOSED(m_disposed);
+
+	if(Object::ReferenceEquals(params, nullptr)) throw gcnew ArgumentNullException("params");
+
+	zero_init<MERGE_VIRTUAL_DISK_PARAMETERS> mergeparams;
+	mergeparams.Version = MERGE_VIRTUAL_DISK_VERSION_2;
+	mergeparams.Version2.MergeSourceDepth = params->SourceDepth;
+	mergeparams.Version2.MergeTargetDepth = params->TargetDepth;
+
+	// Create a new event-based NativeOverlapped structure (VirtualDiskAsyncResult will take ownership of these)
+	ManualResetEvent^ waithandle = gcnew ManualResetEvent(false);
+	NativeOverlapped* overlapped = Overlapped(0, 0, waithandle->SafeWaitHandle->DangerousGetHandle(), nullptr).Pack(nullptr, nullptr);
+
+	// Begin the asynchronous virtual disk operation 
+	DWORD result = MergeVirtualDisk(VirtualDiskSafeHandle::Reference(m_handle), static_cast<MERGE_VIRTUAL_DISK_FLAG>(params->Flags), 
+		&mergeparams, reinterpret_cast<LPOVERLAPPED>(overlapped));
+
+	// Transfer ownership of all asynchronous resources to a VirtualDiskAsyncResult instance before checking the result
+	VirtualDiskAsyncResult^ asyncresult = gcnew VirtualDiskAsyncResult(m_handle, waithandle, overlapped, cancellation, progress);
+
+	// If the request to create the disk failed, complete the operation synchronously to clean everything up
+	if(result != ERROR_IO_PENDING) asyncresult->CompleteSynchronously(result);
+
+	return asyncresult;
+}
+
+//-----------------------------------------------------------------------------
+// VirtualDisk::BeginMirror (private)
+//
+// Starts an asynchronous mirror operation
+//
+// Arguments:
+//
+//	params			- Mirror operation parameters
+//	cancellation	- CancellationToken for the asynchronous operation
+//	progress		- IProgress<int> on which to report operation progress
+
+IAsyncResult^ VirtualDisk::BeginMirror(VirtualDiskMirrorParameters^ params, CancellationToken cancellation, IProgress<int>^ progress)
+{
+	CHECK_DISPOSED(m_disposed);
+
+	if(Object::ReferenceEquals(params, nullptr)) throw gcnew ArgumentNullException("params");
+	if(Object::ReferenceEquals(params->TargetPath, nullptr)) throw gcnew ArgumentNullException("params.TargetPath");
+
+	pin_ptr<const wchar_t> pinpath = PtrToStringChars(params->TargetPath);
+
+	zero_init<MIRROR_VIRTUAL_DISK_PARAMETERS> mirrorparams;
+	mirrorparams.Version = MIRROR_VIRTUAL_DISK_VERSION_1;
+	mirrorparams.Version1.MirrorVirtualDiskPath = pinpath;
+
+	// Create a new event-based NativeOverlapped structure (VirtualDiskAsyncResult will take ownership of these)
+	ManualResetEvent^ waithandle = gcnew ManualResetEvent(false);
+	NativeOverlapped* overlapped = Overlapped(0, 0, waithandle->SafeWaitHandle->DangerousGetHandle(), nullptr).Pack(nullptr, nullptr);
+
+	// Begin the asynchronous virtual disk operation 
+	DWORD result = MirrorVirtualDisk(VirtualDiskSafeHandle::Reference(m_handle), static_cast<MIRROR_VIRTUAL_DISK_FLAG>(params->Flags), 
+		&mirrorparams, reinterpret_cast<LPOVERLAPPED>(overlapped));
 
 	// Transfer ownership of all asynchronous resources to a VirtualDiskAsyncResult instance before checking the result
 	VirtualDiskAsyncResult^ asyncresult = gcnew VirtualDiskAsyncResult(m_handle, waithandle, overlapped, cancellation, progress);
@@ -718,6 +802,71 @@ int VirtualDisk::FragmentationLevel::get(void)
 }
 
 //---------------------------------------------------------------------------
+// VirtualDisk::Merge
+//
+// Synchronously merges a disk within the differencing chain
+//
+// Arguments:
+//
+//	sourcedepth		- Source disk depth in the differencing chain
+//	targetdepth		- Target disk depth in the differencing chain
+
+void VirtualDisk::Merge(unsigned int sourcedepth, unsigned int targetdepth)
+{
+	CHECK_DISPOSED(m_disposed);
+	Merge(gcnew VirtualDiskMergeParameters(sourcedepth, targetdepth));
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::Merge
+//
+// Synchronously merges a disk within the differencing chain
+//
+// Arguments:
+//
+//	sourcedepth		- Source disk depth in the differencing chain
+//	targetdepth		- Target disk depth in the differencing chain
+//	flags			- Flags to control the merge operation
+
+void VirtualDisk::Merge(unsigned int sourcedepth, unsigned int targetdepth, VirtualDiskMergeFlags flags)
+{
+	CHECK_DISPOSED(m_disposed);
+	Merge(gcnew VirtualDiskMergeParameters(sourcedepth, targetdepth, flags));
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::Merge
+//
+// Synchronously merges a disk within the differencing chain
+//
+// Arguments:
+//
+//	params			- Merge operation parameters
+
+void VirtualDisk::Merge(VirtualDiskMergeParameters^ params)
+{
+	CHECK_DISPOSED(m_disposed);
+	VirtualDiskAsyncResult::CompleteAsynchronously(BeginMerge(params, CancellationToken::None, nullptr));
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::MergeAsync
+//
+// Asynchronously merges a disk within the differencing chain
+//
+// Arguments:
+//
+//	params			- Merge operation parameters
+//	cancellation	- Token to monitor for cancellation requests
+//	progress		- Optional IProgress<int> on which to report progress
+
+Task^ VirtualDisk::MergeAsync(VirtualDiskMergeParameters^ params, CancellationToken cancellation, IProgress<int>^ progress)
+{
+	CHECK_DISPOSED(m_disposed);
+	return Task::Factory->FromAsync(BeginMerge(params, cancellation, progress), gcnew Action<IAsyncResult^>(&VirtualDiskAsyncResult::CompleteAsynchronously));
+}
+
+//---------------------------------------------------------------------------
 // VirtualDisk::Metadata::get
 //
 // Gets a reference to the metadata collection for this virtual disk
@@ -728,6 +877,69 @@ VirtualDiskMetadataCollection^ VirtualDisk::Metadata::get(void)
 	return m_metadata;
 }
 	
+//---------------------------------------------------------------------------
+// VirtualDisk::Mirror
+//
+// Synchronously mirrors the virtual disk
+//
+// Arguments:
+//
+//	targetpath		- Target virtual disk file path
+
+void VirtualDisk::Mirror(String^ targetpath)
+{
+	CHECK_DISPOSED(m_disposed);
+	Mirror(gcnew VirtualDiskMirrorParameters(targetpath));
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::Mirror
+//
+// Synchronously mirrors the virtual disk
+//
+// Arguments:
+//
+//	targetpath		- Target virtual disk file path
+//	flags			- Flags to control the mirror operation
+
+void VirtualDisk::Mirror(String^ targetpath, VirtualDiskMirrorFlags flags)
+{
+	CHECK_DISPOSED(m_disposed);
+	Mirror(gcnew VirtualDiskMirrorParameters(targetpath, flags));
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::Mirror
+//
+// Synchronously mirrors the virtual disk
+//
+// Arguments:
+//
+//	params			- Mirror operation parameters
+
+void VirtualDisk::Mirror(VirtualDiskMirrorParameters^ params)
+{
+	CHECK_DISPOSED(m_disposed);
+	VirtualDiskAsyncResult::CompleteAsynchronously(BeginMirror(params, CancellationToken::None, nullptr));
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::MirrorAsync
+//
+// Asynchronously mirrors the virtual disk
+//
+// Arguments:
+//
+//	params			- Mirror operation parameters
+//	cancellation	- Token to monitor for cancellation requests
+//	progress		- Optional IProgress<int> on which to report progress
+
+Task^ VirtualDisk::MirrorAsync(VirtualDiskMirrorParameters^ params, CancellationToken cancellation, IProgress<int>^ progress)
+{
+	CHECK_DISPOSED(m_disposed);
+	return Task::Factory->FromAsync(BeginMirror(params, cancellation, progress), gcnew Action<IAsyncResult^>(&VirtualDiskAsyncResult::CompleteAsynchronously));
+}
+
 //-----------------------------------------------------------------------------
 // VirtualDisk::Open (static)
 //
@@ -924,6 +1136,29 @@ unsigned int VirtualDisk::SectorSize::get(void)
 	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
 
 	return info.Size.SectorSize;
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::SmallestSafeVirtualSize::get
+//
+// Gets the smallest safe virtual disk size
+
+unsigned __int64 VirtualDisk::SmallestSafeVirtualSize::get(void)
+{
+	ULONG infolen = sizeof(GET_VIRTUAL_DISK_INFO);		// Information length
+	ULONG infoused = 0;									// Used information bytes
+
+	CHECK_DISPOSED(m_disposed);
+
+	// Initialize a GET_VIRTUAL_DISK_INFO structure for the operation
+	zero_init<GET_VIRTUAL_DISK_INFO> info;
+	info.Version = GET_VIRTUAL_DISK_INFO_SMALLEST_SAFE_VIRTUAL_SIZE;
+
+	// Get the requested information about the virtual disk
+	DWORD result = GetVirtualDiskInformation(VirtualDiskSafeHandle::Reference(m_handle), &infolen, &info, &infoused);
+	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
+
+	return info.SmallestSafeVirtualSize;
 }
 
 //---------------------------------------------------------------------------
