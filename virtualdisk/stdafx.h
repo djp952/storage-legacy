@@ -33,14 +33,6 @@
 #define END_ROOT_NAMESPACE(...) }}
 
 //---------------------------------------------------------------------------
-// BEGIN_NAMESPACE / END_NAMESPACE
-//
-// Namespace declaration macros to avoid silly indentations (until C++ 17)
-
-#define BEGIN_NAMESPACE(__ns) namespace __ns {
-#define END_NAMESPACE(__ns) }
-
-//---------------------------------------------------------------------------
 // CHECK_DISPOSED
 //
 // Used throughout to make object disposed exceptions easier to read and not

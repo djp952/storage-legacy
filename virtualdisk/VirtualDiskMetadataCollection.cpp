@@ -114,13 +114,9 @@ void VirtualDiskMetadataCollection::Add(KeyValuePair<Guid, array<Byte>^> item)
 
 void VirtualDiskMetadataCollection::Add(Guid key, array<Byte>^ value)
 {
-	if(Object::ReferenceEquals(value, nullptr)) throw gcnew ArgumentNullException("value");
-
-	GUID guid = GuidUtil::SysGuidToUUID(key);
-	pin_ptr<uint8_t> pinvalue = (value->Length > 0) ? &(value[0]) : __nullptr;
-
-	DWORD result = SetVirtualDiskMetadata(VirtualDiskSafeHandle::Reference(m_handle), &guid, value->Length, pinvalue);
-	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
+	// Disallow duplicate keys when adding new items to the dictionary, otherwise just call into indexer
+	if(ContainsKey(key)) throw gcnew ArgumentException("Specified metadata key already exists in the dictionary");
+	else default[key] = value;
 }
 
 //---------------------------------------------------------------------------
@@ -135,33 +131,16 @@ void VirtualDiskMetadataCollection::Add(Guid key, array<Byte>^ value)
 void VirtualDiskMetadataCollection::Clear(void)
 {
 	VirtualDiskSafeHandle::Reference	handle(m_handle);	// Unwrap safe handle
-	ULONG								count = 0;			// Number of items
-	GUID*								guids;				// Array of GUIDs
 
-	// Determine the number of GUIDs there are to be cleared from the metadata
-	DWORD result = EnumerateVirtualDiskMetadata(handle, &count, __nullptr);
-	if(result == ERROR_SUCCESS) return;
-	else if(result != ERROR_MORE_DATA) throw gcnew Win32Exception(result);
+	// Use the Keys collection to get the current list of all metadata Guids and
+	// delete them one at a time from the underlying virtual disk
+	for each(Guid key in this->Keys) {
+		
+		GUID guid = GuidUtil::SysGuidToUUID(key);
 
-	// Allocate an array of GUIDs on the unmanaged heap to store the data
-	try { guids = new GUID[count]; }
-	catch(Exception^) { throw gcnew OutOfMemoryException(); }
-
-	try {
-
-		// Now get all of the GUIDs associated with virtual disk metadata
-		result = EnumerateVirtualDiskMetadata(handle, &count, guids);
+		DWORD result = DeleteVirtualDiskMetadata(handle, &guid);
 		if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
-
-		// Remove all of the metadata GUIDs from the virtual disk
-		for(ULONG index = 0; index < count; index++) {
-
-			result = DeleteVirtualDiskMetadata(handle, &guids[index]);
-			if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
-		}
 	}
-
-	finally { delete[] guids; }			// Always release the allocated memory
 }
 
 //---------------------------------------------------------------------------
@@ -361,10 +340,7 @@ ICollection<array<Byte>^>^ VirtualDiskMetadataCollection::Values::get(void)
 	ICollection<Guid>^ keys = this->Keys;
 	List<array<Byte>^>^ values = gcnew List<array<Byte>^>(keys->Count);
 
-	// This is a rather silly operation and really won't suffer that much by
-	// just using the indexer to get the byte array for each GUID independently
-	for each(Guid guid in keys) values->Add(this->default[guid]);
-
+	for each(Guid guid in keys) values->Add(default[guid]);
 	return values;
 }
 

@@ -30,9 +30,6 @@
     <ClCompile Include="VirtualDisk.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="guids.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="tmp\version.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -53,6 +50,9 @@
     </ClCompile>
     <ClCompile Include="GuidUtil.cpp">
       <Filter>Source Files\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="guids.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -107,9 +107,6 @@
     <ClInclude Include="VirtualDiskMirrorFlags.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zeroinit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="VirtualDiskDetachParameters.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -141,6 +138,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GuidUtil.h">
+      <Filter>Header Files\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="zeroinit.h">
       <Filter>Header Files\utility</Filter>
     </ClInclude>
   </ItemGroup>
