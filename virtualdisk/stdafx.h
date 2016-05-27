@@ -53,9 +53,9 @@
 //---------------------------------------------------------------------------
 // Win32 Declarations
 
-#define WINVER				_WIN32_WINNT_WIN8
-#define	_WIN32_WINNT		_WIN32_WINNT_WIN8
-#define	_WIN32_IE			_WIN32_IE_IE80
+#define WINVER				_WIN32_WINNT_WIN10
+#define	_WIN32_WINNT		_WIN32_WINNT_WIN10
+#define	_WIN32_IE			_WIN32_IE_IE110
 
 #include <windows.h>				// Include main Windows declarations
 #include <virtdisk.h>				// Include Virtual Disk declarations

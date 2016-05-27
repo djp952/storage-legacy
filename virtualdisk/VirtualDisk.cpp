@@ -525,6 +525,23 @@ unsigned int VirtualDisk::BlockSize::get(void)
 }
 
 //---------------------------------------------------------------------------
+// VirtualDisk::BreakMirror
+//
+// Breaks the virtual disk mirror
+//
+// Arguments:
+//
+//	NONE
+
+void VirtualDisk::BreakMirror(void)
+{
+	CHECK_DISPOSED(m_disposed);
+
+	DWORD result = BreakMirrorVirtualDisk(VirtualDiskSafeHandle::Reference(m_handle));
+	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
+}
+	
+//---------------------------------------------------------------------------
 // VirtualDisk::Compact
 //
 // Synchronously compacts the virtual disk
@@ -799,6 +816,42 @@ int VirtualDisk::FragmentationLevel::get(void)
 	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
 
 	return static_cast<int>(info.FragmentationPercentage);
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::GetAllAttachedDevicePaths (static)
+//
+// Gets an enumerable collection of all attached virtual disk device paths
+//
+// Arguments:
+//
+//	NONE
+
+IReadOnlyList<String^>^ VirtualDisk::GetAllAttachedDevicePaths(void)
+{
+	ULONG				cb = 0;					// Required buffer length in bytes
+	array<Byte>^		buffer;					// Managed output buffer
+
+	// Determine how much space is required to hold all the path strings, and
+	// if there are none return an empty string collection
+	DWORD result = GetAllAttachedVirtualDiskPhysicalPaths(&cb, __nullptr);
+	if(result == ERROR_SUCCESS) return gcnew List<String^>();
+	else if(result != ERROR_INSUFFICIENT_BUFFER) throw gcnew Win32Exception(result);
+
+	// This is one of those really annoying API calls that doesn't tell you the right
+	// buffer size unless you call it multiple times in a loop ...
+	while(result == ERROR_INSUFFICIENT_BUFFER) {
+		
+		buffer = gcnew array<Byte>(cb);
+		pin_ptr<uint8_t> pinbuffer = &buffer[0];
+		result = GetAllAttachedVirtualDiskPhysicalPaths(&cb, reinterpret_cast<wchar_t*>(pinbuffer));
+	}
+
+	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
+
+	// The returned buffer is a UTF-16 "multi sz", containing multiple null terminated strings
+	// followed by a trailing null terminator.  Convert into a String^ and split it up for the List<>
+	return gcnew List<String^>(Encoding::Unicode->GetString(buffer)->Split(gcnew array<Char>{'\0'}, StringSplitOptions::RemoveEmptyEntries));
 }
 
 //---------------------------------------------------------------------------

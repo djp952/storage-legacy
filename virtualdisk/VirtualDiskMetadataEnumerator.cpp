@@ -28,7 +28,7 @@
 
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
-BEGIN_ROOT_NAMESPACE(zuki::tools::llvm::clang)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 //---------------------------------------------------------------------------
 // VirtualDiskMetadataEnumerator Constructor
@@ -131,6 +131,6 @@ void VirtualDiskMetadataEnumerator::Reset(void)
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki::tools::llvm::clang)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)

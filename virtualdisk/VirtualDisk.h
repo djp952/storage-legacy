@@ -27,8 +27,10 @@
 #pragma warning(push, 4)				// Enable maximum compiler warnings
 
 using namespace System;
+using namespace System::Collections::Generic;
 using namespace System::ComponentModel;
 using namespace System::Security::Permissions;
+using namespace System::Text;
 using namespace System::Threading;
 using namespace System::Threading::Tasks;
 
@@ -91,6 +93,11 @@ public:
 	//Task^ AttachAsync(VirtualDiskAttachFlags flags, CancellationToken cancellation, IProgress<int>^ progress);
 	Task^ AttachAsync(VirtualDiskAttachParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
 
+	// BreakMirror
+	//
+	// Breaks the virtual disk mirror
+	void BreakMirror(void);
+
 	// Compact
 	//
 	// Synchronously compacts the virtual disk
@@ -147,6 +154,11 @@ public:
 	//Task^ ExpandAsync(__int64 newsize, VirtualDiskExpandFlags flags, IProgress<int>^ progress);
 	//Task^ ExpandAsync(__int64 newsize, CancellationToken cancellation, IProgress<int>^ progress);
 	Task^ ExpandAsync(VirtualDiskExpandParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
+
+	// GetAllAttachedDevicePaths (static)
+	//
+	// Gets an enumerable collection of all attached virtual disk device paths
+	static IReadOnlyList<String^>^ GetAllAttachedDevicePaths(void);
 
 	// Merge
 	//

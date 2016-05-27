@@ -31,7 +31,7 @@ using namespace System::Collections::Generic;
 using namespace System::ComponentModel;
 using namespace System::Runtime::InteropServices;
 
-BEGIN_ROOT_NAMESPACE(zuki::tools::llvm::clang)
+BEGIN_ROOT_NAMESPACE(zuki::storage)
 
 // FORWARD DECLARATIONS
 //
@@ -168,7 +168,7 @@ private:
 
 //---------------------------------------------------------------------------
 
-END_ROOT_NAMESPACE(zuki::tools::llvm::clang)
+END_ROOT_NAMESPACE(zuki::storage)
 
 #pragma warning(pop)
 

@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\utility">
+      <UniqueIdentifier>{b2390c89-bed8-41f8-9374-c63fe1a40874}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\utility">
+      <UniqueIdentifier>{a609f116-06f6-4bd3-ae52-c6905b5965ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp">
@@ -39,14 +45,14 @@
     <ClCompile Include="VirtualDiskType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GuidUtil.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="VirtualDiskMetadataCollection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VirtualDiskMetadataEnumerator.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GuidUtil.cpp">
+      <Filter>Source Files\utility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -104,9 +110,6 @@
     <ClInclude Include="zeroinit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GuidUtil.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="VirtualDiskDetachParameters.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -136,6 +139,9 @@
     </ClInclude>
     <ClInclude Include="VirtualDiskMirrorParameters.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GuidUtil.h">
+      <Filter>Header Files\utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
