@@ -819,15 +819,16 @@ int VirtualDisk::FragmentationLevel::get(void)
 }
 
 //---------------------------------------------------------------------------
-// VirtualDisk::GetAllAttachedDevicePaths (static)
+// VirtualDisk::GetAllAttachedVirtualDisks (static)
 //
-// Gets an enumerable collection of all attached virtual disk device paths
+// Gets an enumerable collection of all attached virtual disks, these are standard
+// DOS paths (D:\blah.vhdx), not physical device paths as the API name impies
 //
 // Arguments:
 //
 //	NONE
 
-IReadOnlyList<String^>^ VirtualDisk::GetAllAttachedDevicePaths(void)
+IReadOnlyList<String^>^ VirtualDisk::GetAllAttachedVirtualDisks(void)
 {
 	ULONG				cb = 0;					// Required buffer length in bytes
 	array<Byte>^		buffer;					// Managed output buffer

@@ -54,7 +54,7 @@ public:
 		CancellationToken cancellation, IProgress<int>^ progress);
 
 	//-----------------------------------------------------------------------
-	// Member Funcitons
+	// Member Functions
 
 	// CompleteAsynchronously (static)
 	//

@@ -155,10 +155,10 @@ public:
 	//Task^ ExpandAsync(__int64 newsize, CancellationToken cancellation, IProgress<int>^ progress);
 	Task^ ExpandAsync(VirtualDiskExpandParameters^ params, CancellationToken cancellation, IProgress<int>^ progress);
 
-	// GetAllAttachedDevicePaths (static)
+	// GetAllAttachedVirtualDisks (static)
 	//
-	// Gets an enumerable collection of all attached virtual disk device paths
-	static IReadOnlyList<String^>^ GetAllAttachedDevicePaths(void);
+	// Gets an enumerable collection of all attached virtual disks
+	static IReadOnlyList<String^>^ GetAllAttachedVirtualDisks(void);
 
 	// Merge
 	//
