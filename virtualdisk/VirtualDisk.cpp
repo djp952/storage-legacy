@@ -1210,7 +1210,11 @@ unsigned __int64 VirtualDisk::SmallestSafeVirtualSize::get(void)
 
 	// Get the requested information about the virtual disk
 	DWORD result = GetVirtualDiskInformation(VirtualDiskSafeHandle::Reference(m_handle), &infolen, &info, &infoused);
-	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
+
+	// Special case: ERROR_VHD_COULD_NOT_COMPUTE_MINIMUM_VIRTUAL_SIZE means that there
+	// isn't any regonizable partition table on the disk, report zero in that case
+	if(result == ERROR_VHD_COULD_NOT_COMPUTE_MINIMUM_VIRTUAL_SIZE) return 0;
+	else if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
 
 	return info.SmallestSafeVirtualSize;
 }

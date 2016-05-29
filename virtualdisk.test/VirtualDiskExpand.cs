@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -32,8 +33,99 @@ namespace zuki.storage.virtualdisk.test
 	public class VirtualDiskExpand
 	{
 		[TestMethod(), TestCategory("Expand Virtual Disk")]
-		public void VirtualDiskExpand_()
+		public void VirtualDiskExpand_Parameters()
 		{
+			VirtualDiskExpandParameters params1 = new VirtualDiskExpandParameters();
+			Assert.AreEqual((ulong)0, params1.NewSize);
+			Assert.AreEqual(VirtualDiskExpandFlags.None, params1.Flags);
+
+			VirtualDiskExpandParameters params2 = new VirtualDiskExpandParameters(4 * 1024 * 1024);
+			Assert.AreEqual((ulong)(4 * 1024 * 1024), params2.NewSize);
+			Assert.AreEqual(VirtualDiskExpandFlags.None, params2.Flags);
+
+			VirtualDiskExpandParameters params3 = new VirtualDiskExpandParameters(8 * 1024 * 1024, VirtualDiskExpandFlags.None);
+			Assert.AreEqual((ulong)(8 * 1024 * 1024), params3.NewSize);
+			Assert.AreEqual(VirtualDiskExpandFlags.None, params3.Flags);
+		}
+
+		[TestMethod(), TestCategory("Expand Virtual Disk")]
+		public void VirtualDiskExpand_DynamicVHD()
+		{
+			string vhdpath = Path.Combine(Environment.CurrentDirectory, "testvhd.vhd");
+			if (File.Exists(vhdpath)) File.Delete(vhdpath);
+
+			using (VirtualDisk vdisk = VirtualDisk.Create(vhdpath, VirtualDiskType.VHD, 4 * 1024 * 1024))
+			{
+				Assert.IsNotNull(vdisk);
+				Assert.AreEqual((ulong)(4 * 1024 * 1024), vdisk.VirtualSize);
+
+				vdisk.Expand(8 * 1024 * 1024);
+				Assert.AreEqual((ulong)(8 * 1024 * 1024), vdisk.VirtualSize);
+			}
+		}
+
+		[TestMethod(), TestCategory("Expand Virtual Disk")]
+		public void VirtualDiskExpand_FixedVHD()
+		{
+			string vhdpath = Path.Combine(Environment.CurrentDirectory, "testvhd.vhd");
+			if (File.Exists(vhdpath)) File.Delete(vhdpath);
+
+			using (VirtualDisk vdisk = VirtualDisk.Create(vhdpath, VirtualDiskType.VHDX, 4 * 1024 * 1024, VirtualDiskCreateFlags.FullPhysicalAllocation))
+			{
+				Assert.IsNotNull(vdisk);
+				Assert.AreEqual((ulong)(4 * 1024 * 1024), vdisk.VirtualSize);
+
+				vdisk.Expand(8 * 1024 * 1024);
+				Assert.AreEqual((ulong)(8 * 1024 * 1024), vdisk.VirtualSize);
+			}
+		}
+
+		[TestMethod(), TestCategory("Expand Virtual Disk")]
+		public void VirtualDiskExpand_DynamicVHDX()
+		{
+			string vhdxpath = Path.Combine(Environment.CurrentDirectory, "testvhdx.vhdx");
+			if (File.Exists(vhdxpath)) File.Delete(vhdxpath);
+
+			using (VirtualDisk vdisk = VirtualDisk.Create(vhdxpath, VirtualDiskType.VHDX, 4 * 1024 * 1024))
+			{
+				Assert.IsNotNull(vdisk);
+				Assert.AreEqual((ulong)(4 * 1024 * 1024), vdisk.VirtualSize);
+
+				vdisk.Expand(8 * 1024 * 1024);
+				Assert.AreEqual((ulong)(8 * 1024 * 1024), vdisk.VirtualSize);
+			}
+		}
+
+		[TestMethod(), TestCategory("Expand Virtual Disk")]
+		public void VirtualDiskExpand_FixedVHDX()
+		{
+			string vhdxpath = Path.Combine(Environment.CurrentDirectory, "testvhdx.vhdx");
+			if (File.Exists(vhdxpath)) File.Delete(vhdxpath);
+
+			using (VirtualDisk vdisk = VirtualDisk.Create(vhdxpath, VirtualDiskType.VHDX, 4 * 1024 * 1024, VirtualDiskCreateFlags.FullPhysicalAllocation))
+			{
+				Assert.IsNotNull(vdisk);
+				Assert.AreEqual((ulong)(4 * 1024 * 1024), vdisk.VirtualSize);
+
+				vdisk.Expand(8 * 1024 * 1024);
+				Assert.AreEqual((ulong)(8 * 1024 * 1024), vdisk.VirtualSize);
+			}
+		}
+
+		[TestMethod(), TestCategory("Expand Virtual Disk")]
+		public async Task VirtualDiskExpand_Async()
+		{
+			string vhdxpath = Path.Combine(Environment.CurrentDirectory, "testvhdx.vhdx");
+			if (File.Exists(vhdxpath)) File.Delete(vhdxpath);
+
+			using (VirtualDisk vdisk = VirtualDisk.Create(vhdxpath, VirtualDiskType.VHDX, 4 * 1024 * 1024, VirtualDiskCreateFlags.FullPhysicalAllocation))
+			{
+				Assert.IsNotNull(vdisk);
+				Assert.AreEqual((ulong)(4 * 1024 * 1024), vdisk.VirtualSize);
+
+				await vdisk.ExpandAsync(new VirtualDiskExpandParameters(8 * 1024 * 1024, VirtualDiskExpandFlags.None), CancellationToken.None, null);
+				Assert.AreEqual((ulong)(8 * 1024 * 1024), vdisk.VirtualSize);
+			}
 		}
 	}
 }
