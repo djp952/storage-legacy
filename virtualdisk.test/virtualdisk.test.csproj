@@ -82,6 +82,7 @@
     <Compile Include="VirtualDiskDetach.cs" />
     <Compile Include="VirtualDiskExpand.cs" />
     <Compile Include="VirtualDiskMetadata.cs" />
+    <Compile Include="VirtualDiskMirror.cs" />
     <Compile Include="VirtualDiskOpen.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="tmp\version.cs" />

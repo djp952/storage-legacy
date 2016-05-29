@@ -974,7 +974,11 @@ void VirtualDisk::Mirror(String^ targetpath, VirtualDiskMirrorFlags flags)
 void VirtualDisk::Mirror(VirtualDiskMirrorParameters^ params)
 {
 	CHECK_DISPOSED(m_disposed);
-	VirtualDiskAsyncResult::CompleteAsynchronously(BeginMirror(params, CancellationToken::None, nullptr));
+
+	// Construct a SynchronousMirrorOperation to monitor and break the mirror when completed,
+	// otherwise this operation will run indefinitely
+	SynchronousMirrorOperation^ operation = gcnew SynchronousMirrorOperation(m_handle);
+	VirtualDiskAsyncResult::CompleteAsynchronously(BeginMirror(params, CancellationToken::None, operation));
 }
 
 //---------------------------------------------------------------------------
@@ -1305,6 +1309,38 @@ unsigned __int64 VirtualDisk::VirtualSize::get(void)
 	if(result != ERROR_SUCCESS) throw gcnew Win32Exception(result);
 
 	return info.Size.VirtualSize;
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::SynchronousMirrorOperation Constructor
+//
+// Arguments:
+//
+//	handle		- VirtualDiskSafeHandle for the source virtual disk
+
+VirtualDisk::SynchronousMirrorOperation::SynchronousMirrorOperation(VirtualDiskSafeHandle^ handle) : m_handle(handle)
+{
+	if(Object::ReferenceEquals(handle, nullptr)) throw gcnew ArgumentNullException("handle");
+}
+
+//---------------------------------------------------------------------------
+// VirtualDisk::SynchronousMirrorOperation::IProgress_OnReport
+//
+// Invoked when the progress of the async operation has changed
+//
+// Arguments:
+//
+//	value		- Operation progress percentage
+
+void VirtualDisk::SynchronousMirrorOperation::IProgress_OnReport(int value)
+{
+	if(value >= 100) {
+		
+		// Break (do not cancel) the mirror operation once it's completed, this will allow
+		// the mirror disk to exist after it's been mirrored from the source disk
+		if(!m_completed) BreakMirrorVirtualDisk(VirtualDiskSafeHandle::Reference(m_handle));
+		m_completed = true;
+	}
 }
 
 //---------------------------------------------------------------------------

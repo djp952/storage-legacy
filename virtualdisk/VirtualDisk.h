@@ -304,6 +304,36 @@ private:
 	//
 	~VirtualDisk();
 
+	// VirtualDisk::SynchronousMirrorOperation
+	//
+	// Implements IProgress<int> for a synchronous mirror operation to break
+	// it when the operation has completed
+	ref class SynchronousMirrorOperation : IProgress<int>
+	{
+	public:
+
+		// Instance Constructor
+		//
+		SynchronousMirrorOperation(VirtualDiskSafeHandle^ handle);
+
+	private:
+
+		// OnReport (IProgress<>)
+		//
+		// Returns a non-generic IEnumerator for the member collection
+		virtual void IProgress_OnReport(int value) sealed = IProgress<int>::Report;
+
+		// m_completed
+		//
+		// Flag indicating that the operation has been completed
+		bool m_completed;
+
+		// m_handle
+		//
+		// Referenced virtual disk safe handle instance
+		VirtualDiskSafeHandle^ m_handle;
+	};
+
 	//-----------------------------------------------------------------------
 	// Private Member Functions
 
